@@ -1,4 +1,5 @@
 #include "Player/MainPlayerController.h"
+#include "Player/MainPlayerCharacter.h"
 
 #include <Engine/LocalPlayer.h>
 
@@ -9,6 +10,8 @@ void AMainPlayerController::BeginPlay() {
 	Super::BeginPlay();
 
 	m_inputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+	PW_ASSERT(m_inputSubsystem != nullptr, LogCharacter, TEXT("'%s' could not retrieve Enhanced input local player subsystem."), *GetNameSafe(this));
+
 	EnableDefaultIMC();
 
 }

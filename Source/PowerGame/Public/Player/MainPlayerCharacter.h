@@ -4,7 +4,11 @@
 #include <GameFramework/Character.h>
 #include <Logging/LogMacros.h>
 
+#include "Core/Core.h"
+
 #include "MainPlayerCharacter.generated.h"
+
+class UBuildModeManager;
 
 // UE Components
 
@@ -33,20 +37,32 @@ public:
 
 protected:
 	// Components
+
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UCameraComponent> camera = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<USkeletalMeshComponent> armMesh = nullptr;
 
+	UPROPERTY(VisibleAnywhere, Category = "Component")
+	TObjectPtr<UBuildModeManager> buildModeManager = nullptr;
+
+	//
 	// Input
+	//
+
+	// Movement
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> moveAction = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> lookAction = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> jumpAction = nullptr;
 
+	// Mode switching
+
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> lookAction = nullptr;
+	TObjectPtr<UInputAction> startBuildModeAction = nullptr;
 
 private:
 	virtual void BeginPlay() override;

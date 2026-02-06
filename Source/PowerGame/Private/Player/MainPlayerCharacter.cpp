@@ -1,5 +1,7 @@
 #include "Player/MainPlayerCharacter.h"
 
+#include "Building/BuildModeManager.h"
+
 #include <Components/CapsuleComponent.h>
 #include <Components/SkeletalMeshComponent.h>
 #include <Camera/CameraComponent.h>
@@ -32,6 +34,10 @@ AMainPlayerCharacter::AMainPlayerCharacter() {
 	armMesh->bCastDynamicShadow = false;
 	armMesh->CastShadow = false;
 
+	// Build mode setup
+
+	buildModeManager = CreateDefaultSubobject<UBuildModeManager>(TEXT("BuildModeManager"));
+
 }
 
 void AMainPlayerCharacter::BeginPlay() {
@@ -63,11 +69,18 @@ void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* playerInpu
 	Super::SetupPlayerInputComponent(playerInputComponent);
 
 	UEnhancedInputComponent* inputComponent = Cast<UEnhancedInputComponent>(playerInputComponent);
+	PW_ASSERT(inputComponent != nullptr, LogCharacter, TEXT("'%s' could not get the Enhanced input component."), *GetNameSafe(this));
+
+	// Movement
 
 	inputComponent->BindAction(moveAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::Move);
+	inputComponent->BindAction(lookAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::Look);
+
 	inputComponent->BindAction(jumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 	inputComponent->BindAction(jumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-	inputComponent->BindAction(lookAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::Look);
+	// Mode switching
+
+	inputComponent->BindAction(startBuildModeAction, ETriggerEvent::Started, buildModeManager.Get(), &UBuildModeManager::StartBuildMode);
 
 }
