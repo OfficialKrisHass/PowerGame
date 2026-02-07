@@ -41,6 +41,8 @@ void UBuildModeManager::BeginPlay() {
 	inputComponent->BindAction(endBuildModeAction, ETriggerEvent::Started, this, &UBuildModeManager::EndBuildMode);
 	inputComponent->BindAction(buildAction, ETriggerEvent::Started, this, &UBuildModeManager::Build);
 
+	inputComponent->BindAction(toggleGridSnapAction, ETriggerEvent::Started, this, &UBuildModeManager::ToggleGridSnap);
+
 	// Setup build ghost
 
 	SpawnBuildGhost();
@@ -72,7 +74,15 @@ void UBuildModeManager::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	if (m_buildGhost->IsHidden())
 		m_buildGhost->SetActorHiddenInGame(false);
 
-	m_buildGhost->SetActorLocation(hit.ImpactPoint);
+	FVector location = hit.ImpactPoint;
+	if (gridSnap) {
+
+		location.X = FMath::RoundToInt(location.X / gridSize) * gridSize;
+		location.Y = FMath::RoundToInt(location.Y / gridSize) * gridSize;
+
+	}
+
+	m_buildGhost->SetActorLocation(location);
 
 }
 
@@ -102,6 +112,13 @@ void UBuildModeManager::EndBuildMode() {
 
 void UBuildModeManager::Build() {
 
+	if (!m_buildGhost->IsValidPlacement()) {
+
+		PW_LOG_ERROR(LogBuilding, TEXT("Invalid build placement."));
+		return;
+
+	}
+
 	PW_LOG(LogBuilding, TEXT("Build action confirmed."));
 
 	PW_ASSERT(buildInstanceClass != nullptr, LogBuilding, TEXT("Can't confirm build when no build instance class is set in BuildModeManager on actor '%s'."), *GetNameSafe(m_character));
@@ -115,6 +132,12 @@ void UBuildModeManager::Build() {
 
 }
 
+void UBuildModeManager::ToggleGridSnap() {
+
+	gridSnap = !gridSnap;
+
+}
+
 void UBuildModeManager::SpawnBuildGhost() {
 
 	PW_ASSERT(buildGhostClass != nullptr, LogBuilding, TEXT("Can't spawn Build Ghost actor when no Build Ghost class is set in BuildModeManager."));
@@ -125,5 +148,7 @@ void UBuildModeManager::SpawnBuildGhost() {
 
 	m_buildGhost = GetWorld()->SpawnActor<ABuildGhost>(buildGhostClass, FTransform::Identity, params);
 	PW_ASSERT(m_buildGhost != nullptr, LogBuilding, TEXT("Could not spawn Build Ghost actor."));
+
+	m_buildGhost->SetActorHiddenInGame(true);
 
 }

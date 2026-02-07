@@ -44,6 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void EndBuildMode();
 
+	UFUNCTION(BlueprintCallable)
+	void ToggleGridSnap();
+
 protected:
 	UPROPERTY(VisibleAnywhere)
 	bool buildModeActive = false;
@@ -59,6 +62,13 @@ protected:
 	TSubclassOf<ABuildGhost> buildGhostClass = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Build Ghost")
 	float buildGhostRange = 5000.0f;
+
+	UPROPERTY(VisibleAnywhere, Category = "Building grid")
+	bool gridSnap = false;
+	UPROPERTY(EditAnywhere, Category = "Building grid");
+	float gridSize = 100.0f;
+	UPROPERTY(EditAnywhere, Category = "Building grid")
+	TObjectPtr<UInputAction> toggleGridSnapAction = nullptr;
 
 	// Input
 
