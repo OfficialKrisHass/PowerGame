@@ -22,3 +22,14 @@ void ABuildInstance::SetBuild(UBuild* build) {
 	mesh->SetStaticMesh(build->mesh);
 
 }
+
+void ABuildInstance::SetHighlightMaterial(UMaterialInterface* material) {
+
+	mesh->SetOverlayMaterial(material);
+
+}
+void ABuildInstance::ResetHighlightMaterial() {
+
+	mesh->SetOverlayMaterial(nullptr);
+
+}

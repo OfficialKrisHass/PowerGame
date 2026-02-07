@@ -8,7 +8,7 @@
 
 #include "MainPlayerCharacter.generated.h"
 
-class UBuildModeManager;
+class UConstructionModeManager;
 
 // UE Components
 
@@ -44,7 +44,7 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> armMesh = nullptr;
 
 	UPROPERTY(VisibleAnywhere, Category = "Component")
-	TObjectPtr<UBuildModeManager> buildModeManager = nullptr;
+	TObjectPtr<UConstructionModeManager> constructionModeManager = nullptr;
 
 	//
 	// Input
@@ -62,7 +62,9 @@ protected:
 	// Mode switching
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> startBuildModeAction = nullptr;
+	TObjectPtr<UInputAction> selectBuildToolAction = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> selectDeconstructToolAction = nullptr;
 
 private:
 	virtual void BeginPlay() override;

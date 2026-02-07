@@ -6,7 +6,7 @@
 
 #include "Core/Core.h"
 
-#include "BuildModeManager.generated.h"
+#include "ConstructionModeManager.generated.h"
 
 // Player
 
@@ -31,25 +31,49 @@ class UInputAction;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogBuilding, Log, All);
 
+UENUM(BlueprintType)
+enum class EConstructionTool : uint8 {
+
+	None = 0 UMETA(DisplayName = "None"),
+	BuildTool UMETA(DisplayName = "Build Tool"),
+	DeconstructTool UMETA(DisplayName = "Deconstruct tool"),
+
+};
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class POWERGAME_API UBuildModeManager : public UActorComponent {
+class POWERGAME_API UConstructionModeManager : public UActorComponent {
 
 	GENERATED_BODY()
 
 public:
-	UBuildModeManager();
+	UConstructionModeManager();
 
 	UFUNCTION(BlueprintCallable)
-	void StartBuildMode();
+	inline void EnterConstructionMode(EConstructionTool toolToSelect) {
+
+		switch (toolToSelect) {
+
+		case EConstructionTool::None: ExitConstructionMode(); break;
+		case EConstructionTool::BuildTool: SelectBuildTool(); break;
+		case EConstructionTool::DeconstructTool: SelectDeconstructTool(); break;
+
+		}
+
+	}
+
 	UFUNCTION(BlueprintCallable)
-	void EndBuildMode();
+	void SelectBuildTool();
+	UFUNCTION(BlueprintCallable)
+	void SelectDeconstructTool();
+	UFUNCTION(BlueprintCallable)
+	void ExitConstructionMode();
 
 	UFUNCTION(BlueprintCallable)
 	void ToggleGridSnap();
 
 protected:
 	UPROPERTY(VisibleAnywhere)
-	bool buildModeActive = false;
+	EConstructionTool tool = EConstructionTool::None;
 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UBuild> testBuild = nullptr;
@@ -63,6 +87,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Build Ghost")
 	float buildGhostRange = 5000.0f;
 
+	// Building grid
+
 	UPROPERTY(VisibleAnywhere, Category = "Building grid")
 	bool gridSnap = false;
 	UPROPERTY(EditAnywhere, Category = "Building grid");
@@ -70,15 +96,22 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Building grid")
 	TObjectPtr<UInputAction> toggleGridSnapAction = nullptr;
 
+	// Deconstruct mode
+
+	UPROPERTY(VisibleAnywhere, Category = "Deconstruct tool")
+	TObjectPtr<ABuildInstance> highlightedBuildInstance = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Deconstruct tool")
+	TObjectPtr<UMaterialInterface> deconstructHighlightMaterial = nullptr;
+
 	// Input
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputMappingContext> buildModeIMC = nullptr;
+	TObjectPtr<UInputMappingContext> constructionModeIMC = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> endBuildModeAction = nullptr;
+	TObjectPtr<UInputAction> exitAction = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> buildAction = nullptr;
+	TObjectPtr<UInputAction> confirmAction = nullptr;
 
 	virtual void BeginPlay() override;
 
@@ -98,8 +131,13 @@ private:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION()
-	void Build();
+	void Confirm();
+	void ConfirmBuildTool();
+	void ConfirmDeconstructTool();
 
 	void SpawnBuildGhost();
+
+	void HandleBuildTool();
+	void HandleDeconstructTool();
 	
 };

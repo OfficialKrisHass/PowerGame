@@ -20,6 +20,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetBuild(UBuild* build);
 
+	UFUNCTION(BlueprintCallable)
+	void SetHighlightMaterial(UMaterialInterface* material);
+	UFUNCTION(BlueprintCallable)
+	void ResetHighlightMaterial();
+
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> mesh = nullptr;

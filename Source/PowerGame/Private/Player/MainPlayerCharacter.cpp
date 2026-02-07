@@ -1,6 +1,6 @@
 #include "Player/MainPlayerCharacter.h"
 
-#include "Building/BuildModeManager.h"
+#include "Building/ConstructionModeManager.h"
 
 #include <Components/CapsuleComponent.h>
 #include <Components/SkeletalMeshComponent.h>
@@ -36,7 +36,7 @@ AMainPlayerCharacter::AMainPlayerCharacter() {
 
 	// Build mode setup
 
-	buildModeManager = CreateDefaultSubobject<UBuildModeManager>(TEXT("BuildModeManager"));
+	constructionModeManager = CreateDefaultSubobject<UConstructionModeManager>(TEXT("BuildModeManager"));
 
 }
 
@@ -81,6 +81,7 @@ void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* playerInpu
 
 	// Mode switching
 
-	inputComponent->BindAction(startBuildModeAction, ETriggerEvent::Started, buildModeManager.Get(), &UBuildModeManager::StartBuildMode);
+	inputComponent->BindAction(selectBuildToolAction, ETriggerEvent::Started, constructionModeManager.Get(), &UConstructionModeManager::SelectBuildTool);
+	inputComponent->BindAction(selectDeconstructToolAction, ETriggerEvent::Started, constructionModeManager.Get(), &UConstructionModeManager::SelectDeconstructTool);
 
 }
