@@ -32,8 +32,12 @@ class POWERGAME_API AMainPlayerCharacter : public ACharacter {
 public:
 	AMainPlayerCharacter();
 
+	UFUNCTION(BlueprintCallable)
 	inline UCameraComponent* GetCamera() const { return camera; }
+	UFUNCTION(BlueprintCallable)
 	inline USkeletalMeshComponent* GetArmMesh() const { return armMesh; }
+	UFUNCTION(BlueprintCallable)
+	inline UConstructionModeManager* GetConstructionModeManager() const { return constructionModeManager; }
 
 protected:
 	// Components

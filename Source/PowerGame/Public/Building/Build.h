@@ -7,6 +7,8 @@
 
 #include "Build.generated.h"
 
+class UTexture2D;
+
 UCLASS()
 class POWERGAME_API UBuild : public UPrimaryDataAsset {
 
@@ -18,5 +20,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UStaticMesh> mesh = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UTexture2D> buildMenuIcon = nullptr;
 
 };

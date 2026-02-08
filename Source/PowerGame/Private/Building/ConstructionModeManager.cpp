@@ -6,6 +6,8 @@
 #include "Player/MainPlayerCharacter.h"
 #include "Player/MainPlayerController.h"
 
+#include "UI/BuildMenu/BuildMenu.h"
+
 #include <Camera/CameraComponent.h>
 
 #include <EnhancedInputComponent.h>
@@ -17,91 +19,6 @@ DEFINE_LOG_CATEGORY(LogBuilding);
 UConstructionModeManager::UConstructionModeManager() {
 	
 	PrimaryComponentTick.bCanEverTick = true;
-
-}
-
-void UConstructionModeManager::SelectBuildTool() {
-
-	if (tool == EConstructionTool::BuildTool) {
-
-		ExitConstructionMode();
-		return;
-
-	}
-	
-	PW_LOG(LogBuilding, TEXT("Selecting build tool."));
-
-	// First deselect the deconstruct tool if selected
-
-	if (tool == EConstructionTool::DeconstructTool) {
-
-		if (highlightedBuildInstance != nullptr) {
-
-			PW_LOG(LogBuilding, TEXT("Deselecting deconstruct tool."));
-
-			highlightedBuildInstance->ResetHighlightMaterial();
-			highlightedBuildInstance = nullptr;
-
-		}
-
-	} else // If deconstruct tool was selected, it added the IMC already.
-		m_controller->AddMappingContext(constructionModeIMC);
-
-	// Then do the actual selecting
-
-	tool = EConstructionTool::BuildTool;
-
-	m_buildGhost->SetActorHiddenInGame(false);
-	m_buildGhost->SetBuild(testBuild);
-
-}
-void UConstructionModeManager::SelectDeconstructTool() {
-
-	if (tool == EConstructionTool::DeconstructTool) {
-
-		ExitConstructionMode();
-		return;
-
-	}
-
-	PW_LOG(LogBuilding, TEXT("Selecting deconstruct tool."));
-
-	// First deselect the build tool if selected
-
-	if (tool == EConstructionTool::BuildTool)
-		m_buildGhost->SetActorHiddenInGame(true);
-	else // If build tool was selected prior, it added the IMC already.
-		m_controller->AddMappingContext(constructionModeIMC);
-	
-	// Then do the actual selecting
-
-	tool = EConstructionTool::DeconstructTool;
-
-}
-
-void UConstructionModeManager::ExitConstructionMode() {
-
-	PW_LOG(LogBuilding, TEXT("Exiting construction mode."));
-
-	switch (tool) {
-
-	case EConstructionTool::BuildTool: m_buildGhost->SetActorHiddenInGame(true); break;
-	case EConstructionTool::DeconstructTool: {
-
-		if (highlightedBuildInstance == nullptr) break;
-
-		highlightedBuildInstance->ResetHighlightMaterial();
-		highlightedBuildInstance = nullptr;
-
-		break;
-
-	}
-	default: return;
-
-	}
-
-	m_controller->RemoveMappingContext(constructionModeIMC);
-	tool = EConstructionTool::None;
 
 }
 
@@ -125,10 +42,9 @@ void UConstructionModeManager::BeginPlay() {
 	PW_ASSERT(inputComponent != nullptr, LogBuilding, TEXT("Could not retrieve UEnhancedInputComponent from '%s'."), *GetNameSafe(m_character));
 
 	inputComponent->BindAction(confirmAction, ETriggerEvent::Started, this, &UConstructionModeManager::Confirm);
+	inputComponent->BindAction(exitAction, ETriggerEvent::Started, this, &UConstructionModeManager::ExitConstructionMode);
 
 	inputComponent->BindAction(toggleGridSnapAction, ETriggerEvent::Started, this, &UConstructionModeManager::ToggleGridSnap);
-
-	inputComponent->BindAction(exitAction, ETriggerEvent::Started, this, &UConstructionModeManager::ExitConstructionMode);
 
 	// Setup build ghost
 
@@ -167,9 +83,11 @@ void UConstructionModeManager::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UConstructionModeManager::HandleBuildTool() {
 
+	if (selectedBuild == nullptr) return;
+
 	FHitResult hit = FHitResult(EForceInit::ForceInit);
 	FVector start = m_camera->GetComponentLocation();
-	FVector end = start + (m_camera->GetForwardVector() * buildGhostRange);
+	FVector end = start + (m_camera->GetForwardVector() * buildToolRange);
 
 	FCollisionQueryParams params = FCollisionQueryParams(TEXT("Build ghost params"), true, m_character);
 	params.AddIgnoredActor(m_buildGhost);
@@ -202,7 +120,7 @@ void UConstructionModeManager::HandleDeconstructTool() {
 
 	FHitResult hit = FHitResult(EForceInit::ForceInit);
 	FVector start = m_camera->GetComponentLocation();
-	FVector end = start + (m_camera->GetForwardVector() * buildGhostRange);
+	FVector end = start + (m_camera->GetForwardVector() * buildToolRange);
 
 	FCollisionQueryParams params = FCollisionQueryParams(TEXT("Deconstruct mode params"), true, m_character);
 	params.AddIgnoredActor(m_buildGhost);
@@ -231,6 +149,114 @@ void UConstructionModeManager::HandleDeconstructTool() {
 
 }
 
+void UConstructionModeManager::SelectBuildTool() {
+
+	if (tool == EConstructionTool::BuildTool) {
+
+		ExitConstructionMode();
+		return;
+
+	}
+	
+	PW_LOG(LogBuilding, TEXT("Selecting build tool."));
+
+	// First deselect the deconstruct tool if selected
+
+	if (tool == EConstructionTool::DeconstructTool) {
+
+		if (highlightedBuildInstance != nullptr) {
+
+			PW_LOG(LogBuilding, TEXT("Deselecting deconstruct tool."));
+
+			highlightedBuildInstance->ResetHighlightMaterial();
+			highlightedBuildInstance = nullptr;
+
+		}
+
+	} else // If deconstruct tool was selected, it added the IMC already.
+		m_controller->AddMappingContext(constructionModeIMC);
+
+	// Then do the actual selecting
+
+	tool = EConstructionTool::BuildTool;
+	m_buildMenu->Open();
+
+}
+void UConstructionModeManager::SelectDeconstructTool() {
+
+	if (tool == EConstructionTool::DeconstructTool) {
+
+		ExitConstructionMode();
+		return;
+
+	}
+
+	PW_LOG(LogBuilding, TEXT("Selecting deconstruct tool."));
+
+	// First deselect the build tool if selected
+
+	if (tool == EConstructionTool::BuildTool) {
+
+		selectedBuild = nullptr;
+
+		m_buildGhost->SetActorHiddenInGame(true);
+		m_buildMenu->Close();
+
+	} else // If build tool was selected prior, it added the IMC already.
+		m_controller->AddMappingContext(constructionModeIMC);
+	
+	// Then do the actual selecting
+
+	tool = EConstructionTool::DeconstructTool;
+
+}
+
+void UConstructionModeManager::ExitConstructionMode() {
+
+	PW_LOG(LogBuilding, TEXT("Exiting construction mode."));
+
+	switch (tool) {
+
+	case EConstructionTool::BuildTool: {
+
+		selectedBuild = nullptr;
+
+		m_buildGhost->SetActorHiddenInGame(true);
+		m_buildMenu->Close();
+
+		break;
+
+	}
+	case EConstructionTool::DeconstructTool: {
+
+		if (highlightedBuildInstance == nullptr) break;
+
+		highlightedBuildInstance->ResetHighlightMaterial();
+		highlightedBuildInstance = nullptr;
+
+		break;
+
+	}
+	default: return;
+
+	}
+
+	m_controller->RemoveMappingContext(constructionModeIMC);
+	tool = EConstructionTool::None;
+
+}
+
+void UConstructionModeManager::SelectBuild(UBuild* build) {
+
+	selectedBuild = build;
+
+	m_buildGhost->SetActorHiddenInGame(false);
+	m_buildGhost->SetBuild(build);
+
+	m_buildMenu->Close();
+
+}
+
 void UConstructionModeManager::Confirm() {
 
 	switch (tool) {
@@ -244,6 +270,7 @@ void UConstructionModeManager::Confirm() {
 }
 void UConstructionModeManager::ConfirmBuildTool() {
 
+	if (selectedBuild == nullptr) return;
 	if (!m_buildGhost->IsValidPlacement()) {
 
 		PW_LOG_ERROR(LogBuilding, TEXT("Invalid build placement."));
@@ -258,7 +285,7 @@ void UConstructionModeManager::ConfirmBuildTool() {
 	ABuildInstance* buildInstance = GetWorld()->SpawnActor<ABuildInstance>(buildInstanceClass, m_buildGhost->GetTransform());
 	PW_ASSERT(buildInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
 
-	buildInstance->SetBuild(testBuild);
+	buildInstance->SetBuild(selectedBuild);
 
 }
 void UConstructionModeManager::ConfirmDeconstructTool() {
@@ -267,6 +294,13 @@ void UConstructionModeManager::ConfirmDeconstructTool() {
 
 	GetWorld()->DestroyActor(highlightedBuildInstance);
 	highlightedBuildInstance = nullptr;
+
+}
+
+void UConstructionModeManager::BindUI(UBuildMenu* buildMenu) {
+
+	m_buildMenu = buildMenu;
+	m_buildMenu->UpdateSlots(availableBuilds);
 
 }
 

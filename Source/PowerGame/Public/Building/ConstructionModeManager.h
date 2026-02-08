@@ -20,6 +20,10 @@ class UBuild;
 class ABuildGhost;
 class ABuildInstance;
 
+// UI
+
+class UBuildMenu;
+
 // UE Components
 
 class UCameraComponent;
@@ -48,6 +52,8 @@ class POWERGAME_API UConstructionModeManager : public UActorComponent {
 public:
 	UConstructionModeManager();
 
+	// Entering/Leaving Construction mode
+
 	UFUNCTION(BlueprintCallable)
 	inline void EnterConstructionMode(EConstructionTool toolToSelect) {
 
@@ -69,23 +75,43 @@ public:
 	void ExitConstructionMode();
 
 	UFUNCTION(BlueprintCallable)
+	void SelectBuild(UBuild* build);
+
+	// Grid snap
+
+	UFUNCTION(BlueprintCallable)
 	void ToggleGridSnap();
+
+	// UI
+
+	UFUNCTION(BlueprintCallable)
+	void BindUI(UBuildMenu* buildMenu);
+
+	// Getters
+
+	UFUNCTION(BlueprintCallable)
+	inline UBuildMenu* GetBuildMenu() const { return m_buildMenu; }
 
 protected:
 	UPROPERTY(VisibleAnywhere)
 	EConstructionTool tool = EConstructionTool::None;
+	UPROPERTY()
+	TObjectPtr<UBuild> selectedBuild = nullptr;
 
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UBuild> testBuild = nullptr;
+	TArray<TObjectPtr<UBuild>> availableBuilds;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<ABuildInstance> buildInstanceClass = nullptr;
 
 	// Build Ghost
 
-	UPROPERTY(EditDefaultsOnly, Category = "Build Ghost")
+	UPROPERTY(EditDefaultsOnly, Category = "Build tool")
 	TSubclassOf<ABuildGhost> buildGhostClass = nullptr;
-	UPROPERTY(EditAnywhere, Category = "Build Ghost")
-	float buildGhostRange = 5000.0f;
+	UPROPERTY(EditAnywhere, Category = "Build tool")
+	float buildToolRange = 5000.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Build tool")
+	TObjectPtr<UInputAction> selectBuildToolAction = nullptr;
 
 	// Building grid
 
@@ -93,6 +119,7 @@ protected:
 	bool gridSnap = false;
 	UPROPERTY(EditAnywhere, Category = "Building grid");
 	float gridSize = 100.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Building grid")
 	TObjectPtr<UInputAction> toggleGridSnapAction = nullptr;
 
@@ -103,15 +130,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Deconstruct tool")
 	TObjectPtr<UMaterialInterface> deconstructHighlightMaterial = nullptr;
 
+	UPROPERTY(EditAnywhere, Category = "Deconstruct tool")
+	TObjectPtr<UInputAction> selectDeconstructToolAction = nullptr;
+
 	// Input
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputMappingContext> constructionModeIMC = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> exitAction = nullptr;
-	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> confirmAction = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> exitAction = nullptr;
 
 	virtual void BeginPlay() override;
 
@@ -127,6 +157,11 @@ private:
 	TObjectPtr<AMainPlayerController> m_controller = nullptr;
 	UPROPERTY()
 	TObjectPtr<UCameraComponent> m_camera = nullptr;
+
+	// UI
+
+	UPROPERTY()
+	TObjectPtr<UBuildMenu> m_buildMenu = nullptr;
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
