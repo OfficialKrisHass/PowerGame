@@ -95,16 +95,14 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere)
 	EConstructionTool tool = EConstructionTool::None;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBuild> selectedBuild = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	TArray<TObjectPtr<UBuild>> availableBuilds;
 
 	// Build Ghost
-
-	UPROPERTY(EditDefaultsOnly, Category = "Build tool")
-	TSubclassOf<ABuildGhost> buildGhostClass = nullptr;
+	
 	UPROPERTY(EditAnywhere, Category = "Build tool")
 	float buildToolRange = 5000.0f;
 
@@ -168,9 +166,11 @@ private:
 	void ConfirmBuildTool();
 	void ConfirmDeconstructTool();
 
-	void SpawnBuildGhost();
+	void SpawnBuildGhost(TSubclassOf<ABuildGhost> buildGhostClass);
 
 	void HandleBuildTool();
 	void HandleDeconstructTool();
+
+	void VisibilityTrace(FHitResult& hit);
 	
 };

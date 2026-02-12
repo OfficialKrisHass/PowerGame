@@ -8,6 +8,7 @@
 #include "Build.generated.h"
 
 class ABuildInstance;
+class ABuildGhost;
 
 class UTexture2D;
 
@@ -22,9 +23,14 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<ABuildInstance> buildInstanceClass = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<ABuildGhost> buildGhostClass = nullptr;
 
+	// Visual 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UStaticMesh> mesh = nullptr;
+
+	// Build Menu
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UTexture2D> buildMenuIcon = nullptr;

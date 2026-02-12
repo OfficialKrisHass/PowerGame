@@ -47,15 +47,11 @@ void UConstructionModeManager::BeginPlay() {
 
 	inputComponent->BindAction(toggleGridSnapAction, ETriggerEvent::Started, this, &UConstructionModeManager::ToggleGridSnap);
 
-	// Setup build ghost
-
-	SpawnBuildGhost();
-
 }
 
-void UConstructionModeManager::SpawnBuildGhost() {
+void UConstructionModeManager::SpawnBuildGhost(TSubclassOf<ABuildGhost> buildGhostClass) {
 
-	PW_ASSERT(buildGhostClass != nullptr, LogBuilding, TEXT("Can't spawn Build Ghost actor when no Build Ghost class is set in BuildModeManager."));
+	PW_ASSERT(buildGhostClass != nullptr, LogBuilding, TEXT("Can't spawn Build Ghost actor with invalid Build Ghost class."));
 
 	FActorSpawnParameters params;
 	params.Owner = GetOwner();
@@ -87,24 +83,14 @@ void UConstructionModeManager::HandleBuildTool() {
 	if (selectedBuild == nullptr) return;
 
 	FHitResult hit = FHitResult(EForceInit::ForceInit);
-	FVector start = m_camera->GetComponentLocation();
-	FVector end = start + (m_camera->GetForwardVector() * buildToolRange);
+	VisibilityTrace(hit);
 
-	FCollisionQueryParams params = FCollisionQueryParams(TEXT("Build ghost params"), true, m_character);
-	params.AddIgnoredActor(m_buildGhost);
-	params.bReturnPhysicalMaterial = false;
-	params.bDebugQuery = true;
+	if (!hit.bBlockingHit) {
 
-	if (!GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, params)) {
-
-		if (!m_buildGhost->IsHidden())
-			m_buildGhost->SetActorHiddenInGame(true);
-
+		m_buildGhost->SetActorHiddenInGame(true);
 		return;
 
 	}
-	if (m_buildGhost->IsHidden())
-		m_buildGhost->SetActorHiddenInGame(false);
 
 	FVector location = hit.ImpactPoint;
 	if (gridSnap) {
@@ -114,21 +100,15 @@ void UConstructionModeManager::HandleBuildTool() {
 
 	}
 
-	m_buildGhost->SetActorLocation(location);
+	m_buildGhost->Update(location, Cast<ABuildInstance>(hit.GetActor()));
 
 }
 void UConstructionModeManager::HandleDeconstructTool() {
 
 	FHitResult hit = FHitResult(EForceInit::ForceInit);
-	FVector start = m_camera->GetComponentLocation();
-	FVector end = start + (m_camera->GetForwardVector() * buildToolRange);
+	VisibilityTrace(hit);
 
-	FCollisionQueryParams params = FCollisionQueryParams(TEXT("Deconstruct mode params"), true, m_character);
-	params.AddIgnoredActor(m_buildGhost);
-	params.bReturnPhysicalMaterial = false;
-	params.bDebugQuery = true;
-
-	if (GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, params) && Cast<ABuildInstance>(hit.GetActor()) != nullptr) {
+	if (hit.bBlockingHit && Cast<ABuildInstance>(hit.GetActor()) != nullptr) {
 
 		ABuildInstance* buildInstance = Cast<ABuildInstance>(hit.GetActor());
 		if (highlightedBuildInstance != nullptr && highlightedBuildInstance != buildInstance)
@@ -147,6 +127,20 @@ void UConstructionModeManager::HandleDeconstructTool() {
 
 	highlightedBuildInstance->ResetHighlightMaterial();
 	highlightedBuildInstance = nullptr;
+
+}
+
+void UConstructionModeManager::VisibilityTrace(FHitResult& hit) {
+
+	FVector start = m_camera->GetComponentLocation();
+	FVector end = start + (m_camera->GetForwardVector() * buildToolRange);
+
+	FCollisionQueryParams params = FCollisionQueryParams(TEXT("Construction mode visibility trace"), true, m_character);
+	params.AddIgnoredActor(m_buildGhost);
+	params.bReturnPhysicalMaterial = false;
+	params.bDebugQuery = true;
+
+	GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, params);
 
 }
 
@@ -200,7 +194,7 @@ void UConstructionModeManager::SelectDeconstructTool() {
 
 		selectedBuild = nullptr;
 
-		m_buildGhost->SetActorHiddenInGame(true);
+		m_buildGhost->Reset();
 		m_buildMenu->Close();
 
 	} else // If build tool was selected prior, it added the IMC already.
@@ -222,7 +216,7 @@ void UConstructionModeManager::ExitConstructionMode() {
 
 		selectedBuild = nullptr;
 
-		m_buildGhost->SetActorHiddenInGame(true);
+		m_buildGhost->Reset();
 		m_buildMenu->Close();
 
 		break;
@@ -251,9 +245,19 @@ void UConstructionModeManager::SelectBuild(UBuild* build) {
 
 	selectedBuild = build;
 
-	m_buildGhost->SetActorHiddenInGame(false);
+	if (m_buildGhost == nullptr)
+		SpawnBuildGhost(build->buildGhostClass);
+	else if (m_buildGhost->GetClass() != build->buildGhostClass) {
+
+		GetWorld()->DestroyActor(m_buildGhost);
+		SpawnBuildGhost(build->buildGhostClass);
+
+	}
+
 	m_buildGhost->SetBuild(build);
 
+	// Handle the build menu
+	
 	m_buildMenu->Close();
 
 }
@@ -281,12 +285,28 @@ void UConstructionModeManager::ConfirmBuildTool() {
 
 	PW_LOG(LogBuilding, TEXT("Build action confirmed."));
 
-	PW_ASSERT(selectedBuild->buildInstanceClass != nullptr, LogBuilding, TEXT("Can't confirm build when no build instance class is set in BuildModeManager on actor '%s'."), *GetNameSafe(m_character));
+	// There is no 100% guarantee that TickComponent will be called, and therefore update the location
+	// of the build ghost, before this function, so we have to do the ray again to get the correct position.
 
-	ABuildInstance* buildInstance = GetWorld()->SpawnActor<ABuildInstance>(selectedBuild->buildInstanceClass, m_buildGhost->GetTransform());
-	PW_ASSERT(buildInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
+	FHitResult hit = FHitResult(EForceInit::ForceInit);
+	VisibilityTrace(hit);
 
-	buildInstance->SetBuild(selectedBuild);
+	if (!hit.bBlockingHit) {
+
+		PW_LOG_ERROR(LogBuilding, TEXT("Invalid build placement."));
+		return;
+
+	}
+
+	FVector location = hit.ImpactPoint;
+	if (gridSnap) {
+
+		location.X = FMath::RoundToInt(location.X / gridSize) * gridSize;
+		location.Y = FMath::RoundToInt(location.Y / gridSize) * gridSize;
+
+	}
+
+	m_buildGhost->Confirm(location);
 
 }
 void UConstructionModeManager::ConfirmDeconstructTool() {

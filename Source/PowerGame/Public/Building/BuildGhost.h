@@ -7,9 +7,16 @@
 
 class UBuild;
 
-class UBoxComponent;
+UENUM(BlueprintType)
+enum class EBuildGhostState : uint8 {
 
-UCLASS()
+	None = 0 UMETA(DisplayName = "None"),
+	Preview = 1 UMETA(DisplayName = "Preview"),
+	StartSelected = 2 UMETA(DisplayName = "Start locker"),
+
+};
+
+UCLASS(Abstract)
 class POWERGAME_API ABuildGhost : public AActor {
 
 	GENERATED_BODY()
@@ -18,34 +25,35 @@ public:
 	ABuildGhost();
 
 	UFUNCTION(BlueprintCallable)
-	void SetBuild(UBuild* build);
+	virtual void SetBuild(UBuild* build);
 
 	UFUNCTION(BlueprintCallable)
-	inline bool IsValidPlacement() const { return m_validPlacement; }
+	virtual void Update(const FVector& hitLocation, ABuildInstance* hitBuildInstance);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void Confirm(const FVector& location);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void Reset();
+
+	// Getters
+
+	UFUNCTION(BlueprintCallable)
+	inline UBuild* GetBuild() const { return m_build; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual inline bool IsValidPlacement() const { return true; }
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Preview")
-	TObjectPtr<UMaterialInterface> validMaterial = nullptr;
-	UPROPERTY(EditAnywhere, Category = "Preview")
-	TObjectPtr<UMaterialInterface> invalidMaterial = nullptr;
-
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UStaticMeshComponent> mesh = nullptr;
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UBoxComponent> trigger = nullptr;
-
-private:
+	UPROPERTY(VisibleAnywhere)
+	EBuildGhostState m_state = EBuildGhostState::None;
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBuild> m_build = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
-	bool m_validPlacement = true;
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UStaticMeshComponent> m_mesh = nullptr;
 
+private:
 	virtual void BeginPlay() override;
-
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* overlappedComp, AActor* other, UPrimitiveComponent* otherComp, int32 otherIndex, bool fromSweep, const FHitResult& sweepResult);
-	UFUNCTION()
-	void OnOverlapEnd(UPrimitiveComponent* overlappedComp, AActor* other, UPrimitiveComponent* otherComp, int32 otherIndex);
 	
 };

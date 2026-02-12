@@ -1,21 +1,16 @@
 #include "Building/BuildGhost.h"
+#include "Building/BuildInstance.h"
 #include "Building/Build.h"
 
-#include <Components/BoxComponent.h>
+#include "Building/ConstructionModeManager.h"
 
 ABuildGhost::ABuildGhost() {
 
 	PrimaryActorTick.bCanEverTick = false;
 
-	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SetRootComponent(mesh);
-
-	trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
-	trigger->SetupAttachment(mesh);
-
-	trigger->OnComponentBeginOverlap.AddDynamic(this, &ABuildGhost::OnOverlapBegin);
-	trigger->OnComponentEndOverlap.AddDynamic(this, &ABuildGhost::OnOverlapEnd);
+	m_mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	m_mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetRootComponent(m_mesh);
 
 }
 
@@ -27,21 +22,39 @@ void ABuildGhost::BeginPlay() {
 
 void ABuildGhost::SetBuild(UBuild* build) {
 
+	m_state = EBuildGhostState::Preview;
 	m_build = build;
-	mesh->SetStaticMesh(build->mesh);
+
+	m_mesh->SetStaticMesh(build->mesh);
+
+	SetActorHiddenInGame(false);
 
 }
 
-void ABuildGhost::OnOverlapBegin(UPrimitiveComponent* overlappedComp, AActor* other, UPrimitiveComponent* otherComp, int32 otherIndex, bool fromSweep, const FHitResult& sweepResult) {
+void ABuildGhost::Update(const FVector& hitLocation, ABuildInstance* hitBuildInstance) {
 
-	mesh->SetMaterial(0, invalidMaterial);
-	m_validPlacement = false;
+	// In case the build ghost was hidden for a period of time and suddenly brought up again
+	SetActorHiddenInGame(false);
+
+	SetActorLocation(hitLocation);
 
 }
 
-void ABuildGhost::OnOverlapEnd(UPrimitiveComponent* overlappedComp, AActor* other, UPrimitiveComponent* otherComp, int32 otherIndex) {
+void ABuildGhost::Confirm(const FVector& location) {
 
-	mesh->SetMaterial(0, validMaterial);
-	m_validPlacement = true;
+	PW_ASSERT(m_state == EBuildGhostState::Preview, LogBuilding, TEXT("Invalid Build Ghost placement state (must be EBuildGhostPlacementState::Preview)."));
+	PW_ASSERT(m_build->buildInstanceClass != nullptr, LogBuilding, TEXT("Can't confirm build with invalid Build Instance class. Build: '%s'"), *GetNameSafe(m_build));
+
+	ABuildInstance* buildInstance = GetWorld()->SpawnActor<ABuildInstance>(m_build->buildInstanceClass, location, GetActorRotation());
+	PW_ASSERT(buildInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
+
+	buildInstance->SetBuild(m_build);
+
+}
+
+void ABuildGhost::Reset() {
+
+	m_build = nullptr;
+	SetActorHiddenInGame(true);
 
 }
