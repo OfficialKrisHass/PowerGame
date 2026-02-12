@@ -7,6 +7,8 @@
 
 #include "Build.generated.h"
 
+class ABuildInstance;
+
 class UTexture2D;
 
 UCLASS()
@@ -17,6 +19,9 @@ class POWERGAME_API UBuild : public UPrimaryDataAsset {
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 id = -1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<ABuildInstance> buildInstanceClass = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UStaticMesh> mesh = nullptr;

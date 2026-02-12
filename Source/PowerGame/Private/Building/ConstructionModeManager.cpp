@@ -1,5 +1,6 @@
 #include "Building/ConstructionModeManager.h"
 
+#include "Building/Build.h"
 #include "Building/BuildGhost.h"
 #include "Building/BuildInstance.h"
 
@@ -280,9 +281,9 @@ void UConstructionModeManager::ConfirmBuildTool() {
 
 	PW_LOG(LogBuilding, TEXT("Build action confirmed."));
 
-	PW_ASSERT(buildInstanceClass != nullptr, LogBuilding, TEXT("Can't confirm build when no build instance class is set in BuildModeManager on actor '%s'."), *GetNameSafe(m_character));
+	PW_ASSERT(selectedBuild->buildInstanceClass != nullptr, LogBuilding, TEXT("Can't confirm build when no build instance class is set in BuildModeManager on actor '%s'."), *GetNameSafe(m_character));
 
-	ABuildInstance* buildInstance = GetWorld()->SpawnActor<ABuildInstance>(buildInstanceClass, m_buildGhost->GetTransform());
+	ABuildInstance* buildInstance = GetWorld()->SpawnActor<ABuildInstance>(selectedBuild->buildInstanceClass, m_buildGhost->GetTransform());
 	PW_ASSERT(buildInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
 
 	buildInstance->SetBuild(selectedBuild);

@@ -100,8 +100,6 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	TArray<TObjectPtr<UBuild>> availableBuilds;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<ABuildInstance> buildInstanceClass = nullptr;
 
 	// Build Ghost
 
