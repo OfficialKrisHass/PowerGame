@@ -18,6 +18,7 @@ public:
 	virtual void Confirm(const FVector& location) override;
 
 private:
+
 	UPROPERTY(VisibleAnywhere)
 	FVector m_startLocation = FVector::ZeroVector;
 

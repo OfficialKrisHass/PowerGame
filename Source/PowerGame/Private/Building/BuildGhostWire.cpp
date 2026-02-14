@@ -1,10 +1,9 @@
 #include "Building/BuildGhostWire.h"
-#include "Building/BuildInstance.h"
 #include "Building/Build.h"
 
 #include "Building/ConstructionModeManager.h"
 
-#include "Building/Instances/Wire.h"
+#include "Building/Instances/SplineBuildInstance.h"
 
 void ABuildGhostWire::SetBuild(UBuild* build) {
 
@@ -37,11 +36,11 @@ void ABuildGhostWire::Confirm(const FVector& location) {
 
 		PW_ASSERT(m_build->buildInstanceClass != nullptr, LogBuilding, TEXT("Can't confirm build with invalid Build Instance class. Build: '%s'"), *GetNameSafe(m_build));
 
-		AWire* wireInstance = GetWorld()->SpawnActor<AWire>(m_build->buildInstanceClass, m_startLocation, GetActorRotation());
-		PW_ASSERT(wireInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
+		ASplineBuildInstance* splineInstance = GetWorld()->SpawnActor<ASplineBuildInstance>(m_build->buildInstanceClass, m_startLocation, GetActorRotation());
+		PW_ASSERT(splineInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
 
-		wireInstance->SetBuild(m_build);
-		wireInstance->SetStartAndEnd(m_startLocation, location);
+		splineInstance->SetBuild(m_build);
+		splineInstance->SetStartAndEnd(m_startLocation, location);
 
 		// Reset back to preview for the next wire
 

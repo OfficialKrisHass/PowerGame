@@ -1,18 +1,20 @@
 #pragma once
 
 #include <CoreMinimal.h>
-#include "Building/BuildInstance.h"
+#include "Building/Instances/SplineBuildInstance.h"
 
 #include "Wire.generated.h"
 
+class USplineComponent;
+class USplineMeshComponent;
+
 UCLASS()
-class POWERGAME_API AWire : public ABuildInstance {
+class POWERGAME_API AWire : public ASplineBuildInstance {
 
 	GENERATED_BODY()
 	
 public:
-	UFUNCTION(BlueprintCallable)
-	void SetStartAndEnd(const FVector& startLocation, const FVector& endLocation);
+	virtual void SetStartAndEnd(const FVector& startLocation, const FVector& endLocation) override;
 
 private:
 	UPROPERTY(VisibleAnywhere)

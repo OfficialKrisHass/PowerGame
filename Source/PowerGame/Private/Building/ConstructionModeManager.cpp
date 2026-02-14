@@ -2,7 +2,8 @@
 
 #include "Building/Build.h"
 #include "Building/BuildGhost.h"
-#include "Building/BuildInstance.h"
+
+#include "Building/Instances/BuildInstance.h"
 
 #include "Player/MainPlayerCharacter.h"
 #include "Player/MainPlayerController.h"

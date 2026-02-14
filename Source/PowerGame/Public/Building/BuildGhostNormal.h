@@ -18,7 +18,7 @@ public:
 
 private:
 	UPROPERTY(VisibleAnywhere)
-	bool m_validPlacement = false;
+	bool m_validPlacement = true;
 
 	UPROPERTY(EditAnywhere, Category = "Preview")
 	TObjectPtr<UMaterialInterface> m_validMaterial = nullptr;

@@ -1,12 +1,10 @@
-#include "Building/BuildInstance.h"
+#include "Building/Instances/BuildInstance.h"
+
 #include "Building/Build.h"
 
 ABuildInstance::ABuildInstance() {
 
-	PrimaryActorTick.bCanEverTick = true;
-
-	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	SetRootComponent(mesh);
+	PrimaryActorTick.bCanEverTick = false;
 
 }
 

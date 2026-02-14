@@ -1,8 +1,9 @@
 #include "Building/BuildGhost.h"
-#include "Building/BuildInstance.h"
 #include "Building/Build.h"
 
 #include "Building/ConstructionModeManager.h"
+
+#include "Building/Instances/BuildInstance.h"
 
 ABuildGhost::ABuildGhost() {
 

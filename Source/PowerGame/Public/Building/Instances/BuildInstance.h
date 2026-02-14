@@ -9,7 +9,7 @@
 
 class UBuild;
 
-UCLASS()
+UCLASS(Abstract)
 class POWERGAME_API ABuildInstance : public AActor {
 
 	GENERATED_BODY()

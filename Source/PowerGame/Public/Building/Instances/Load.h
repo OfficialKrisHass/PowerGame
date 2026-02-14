@@ -1,14 +1,14 @@
 #pragma once
 
 #include <CoreMinimal.h>
-#include <Building/BuildInstance.h>
+#include <Building/Instances/MeshBuildInstance.h>
 
 #include "Core/Core.h"
 
 #include "Load.generated.h"
 
 UCLASS()
-class POWERGAME_API ALoad : public ABuildInstance {
+class POWERGAME_API ALoad : public AMeshBuildInstance {
 
 	GENERATED_BODY()
 
