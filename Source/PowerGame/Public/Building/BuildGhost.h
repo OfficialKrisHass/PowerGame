@@ -31,7 +31,7 @@ public:
 	virtual void Update(const FVector& hitLocation, ABuildInstance* hitBuildInstance);
 
 	UFUNCTION(BlueprintCallable)
-	virtual void Confirm(const FVector& location);
+	virtual void Confirm(const FVector& location, ABuildInstance* targetBuildInstance);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void Reset();

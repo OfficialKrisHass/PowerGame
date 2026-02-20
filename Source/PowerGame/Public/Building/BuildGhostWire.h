@@ -5,6 +5,8 @@
 
 #include "BuildGhostWire.generated.h"
 
+class ABuildInstance;
+
 UCLASS()
 class POWERGAME_API ABuildGhostWire : public ABuildGhost {
 
@@ -15,11 +17,13 @@ public:
 
 	virtual void Update(const FVector& hitLocation, ABuildInstance* hitBuildInstance) override;
 
-	virtual void Confirm(const FVector& location) override;
+	virtual void Confirm(const FVector& location, ABuildInstance* targetBuildInstance) override;
 
 private:
 
 	UPROPERTY(VisibleAnywhere)
-	FVector m_startLocation = FVector::ZeroVector;
+	TObjectPtr<ABuildInstance> m_startBuildInstance = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	FVector m_startWireLocation = FVector::ZeroVector;
 
 };

@@ -20,10 +20,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetBuild(UBuild* build);
 
+	// Highlight material
+
 	UFUNCTION(BlueprintCallable)
 	void SetHighlightMaterial(UMaterialInterface* material);
 	UFUNCTION(BlueprintCallable)
 	void ResetHighlightMaterial();
+
+	// Getters
+
+	UFUNCTION(BlueprintCallable)
+	inline UBuild* GetBuild() const { return m_build; }
 
 protected:
 	UPROPERTY(EditAnywhere)

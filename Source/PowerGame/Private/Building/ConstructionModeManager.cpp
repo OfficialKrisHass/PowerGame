@@ -299,6 +299,8 @@ void UConstructionModeManager::ConfirmBuildTool() {
 
 	}
 
+	// Get the location
+
 	FVector location = hit.ImpactPoint;
 	if (gridSnap) {
 
@@ -307,7 +309,7 @@ void UConstructionModeManager::ConfirmBuildTool() {
 
 	}
 
-	m_buildGhost->Confirm(location);
+	m_buildGhost->Confirm(location, Cast<ABuildInstance>(hit.GetActor()));
 
 }
 void UConstructionModeManager::ConfirmDeconstructTool() {

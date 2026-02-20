@@ -3,6 +3,7 @@
 
 #include "Building/ConstructionModeManager.h"
 
+#include "Building/Instances/BuildInstance.h"
 #include "Building/Instances/SplineBuildInstance.h"
 
 void ABuildGhostWire::SetBuild(UBuild* build) {
@@ -20,13 +21,19 @@ void ABuildGhostWire::Update(const FVector& hitLocation, ABuildInstance* hitBuil
 
 }
 
-void ABuildGhostWire::Confirm(const FVector& location) {
+void ABuildGhostWire::Confirm(const FVector& location, ABuildInstance* targetBuildInstance) {
+
+	if (targetBuildInstance == nullptr) return;
+
+	UBuild* build = targetBuildInstance->GetBuild();
 
 	switch (m_state) {
 
 	case EBuildGhostState::Preview: {
 
-		m_startLocation = location;
+		m_startBuildInstance = targetBuildInstance;
+		m_startWireLocation = targetBuildInstance->GetActorLocation() + build->wireConnectionLocation;
+
 		m_state = EBuildGhostState::StartSelected;
 
 		break;
@@ -34,13 +41,17 @@ void ABuildGhostWire::Confirm(const FVector& location) {
 	}
 	case EBuildGhostState::StartSelected: {
 
+		if (targetBuildInstance == m_startBuildInstance) break;
+
 		PW_ASSERT(m_build->buildInstanceClass != nullptr, LogBuilding, TEXT("Can't confirm build with invalid Build Instance class. Build: '%s'"), *GetNameSafe(m_build));
 
-		ASplineBuildInstance* splineInstance = GetWorld()->SpawnActor<ASplineBuildInstance>(m_build->buildInstanceClass, m_startLocation, GetActorRotation());
+		ASplineBuildInstance* splineInstance = GetWorld()->SpawnActor<ASplineBuildInstance>(m_build->buildInstanceClass, m_startWireLocation, GetActorRotation());
 		PW_ASSERT(splineInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
 
+		FVector endLocation = targetBuildInstance->GetActorLocation() + build->wireConnectionLocation;
+
 		splineInstance->SetBuild(m_build);
-		splineInstance->SetStartAndEnd(m_startLocation, location);
+		splineInstance->SetStartAndEnd(m_startWireLocation, endLocation);
 
 		// Reset back to preview for the next wire
 

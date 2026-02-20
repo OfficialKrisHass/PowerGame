@@ -26,9 +26,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<ABuildGhost> buildGhostClass = nullptr;
 
-	// Visual 
+	// Visual
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UStaticMesh> mesh = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector wireConnectionLocation = FVector::ZeroVector;
 
 	// Build Menu
 
