@@ -32,7 +32,7 @@ void ABuildGhostWire::Confirm(const FVector& location, ABuildInstance* targetBui
 	case EBuildGhostState::Preview: {
 
 		m_startBuildInstance = targetBuildInstance;
-		m_startWireLocation = targetBuildInstance->GetActorLocation() + build->wireConnectionLocation;
+		m_startWireLocation = targetBuildInstance->GetActorTransform().TransformPosition(build->wireConnectionLocation);
 
 		m_state = EBuildGhostState::StartSelected;
 
@@ -48,10 +48,8 @@ void ABuildGhostWire::Confirm(const FVector& location, ABuildInstance* targetBui
 		ASplineBuildInstance* splineInstance = GetWorld()->SpawnActor<ASplineBuildInstance>(m_build->buildInstanceClass, m_startWireLocation, GetActorRotation());
 		PW_ASSERT(splineInstance != nullptr, LogBuilding, TEXT("Could not spawn actor of type ABuildInstance."));
 
-		FVector endLocation = targetBuildInstance->GetActorLocation() + build->wireConnectionLocation;
-
 		splineInstance->SetBuild(m_build);
-		splineInstance->SetStartAndEnd(m_startWireLocation, endLocation);
+		splineInstance->SetStartAndEnd(m_startWireLocation, targetBuildInstance->GetActorTransform().TransformPosition(build->wireConnectionLocation));
 
 		// Reset back to preview for the next wire
 
