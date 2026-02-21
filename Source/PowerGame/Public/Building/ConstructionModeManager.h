@@ -82,6 +82,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ToggleGridSnap();
 
+	// Build ghost
+
+	UFUNCTION(BlueprintCallable)
+	void RotateBuildGhost();
+
 	// UI
 
 	UFUNCTION(BlueprintCallable)
@@ -93,18 +98,26 @@ public:
 	inline UBuildMenu* GetBuildMenu() const { return m_buildMenu; }
 
 protected:
+	virtual void BeginPlay() override;
+
+private:
 	UPROPERTY(VisibleAnywhere)
-	EConstructionTool tool = EConstructionTool::None;
+	EConstructionTool m_tool = EConstructionTool::None;
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UBuild> selectedBuild = nullptr;
+	TObjectPtr<UBuild> m_selectedBuild = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	TArray<TObjectPtr<UBuild>> availableBuilds;
 
-	// Build Ghost
+	// Build tool
 	
+	UPROPERTY()
+	TObjectPtr<ABuildGhost> m_buildGhost = nullptr;
+
 	UPROPERTY(EditAnywhere, Category = "Build tool")
 	float buildToolRange = 5000.0f;
+	UPROPERTY(EditAnywhere, Category = "Build tool")
+	float rotationAngle = 45.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Build tool")
 	TObjectPtr<UInputAction> selectBuildToolAction = nullptr;
@@ -112,7 +125,7 @@ protected:
 	// Building grid
 
 	UPROPERTY(VisibleAnywhere, Category = "Building grid")
-	bool gridSnap = false;
+	bool m_gridSnap = false;
 	UPROPERTY(EditAnywhere, Category = "Building grid");
 	float gridSize = 100.0f;
 
@@ -122,7 +135,7 @@ protected:
 	// Deconstruct mode
 
 	UPROPERTY(VisibleAnywhere, Category = "Deconstruct tool")
-	TObjectPtr<ABuildInstance> highlightedBuildInstance = nullptr;
+	TObjectPtr<ABuildInstance> m_highlightedBuildInstance = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Deconstruct tool")
 	TObjectPtr<UMaterialInterface> deconstructHighlightMaterial = nullptr;
 
@@ -133,17 +146,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputMappingContext> constructionModeIMC = nullptr;
+	
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> rotateGhostAction = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> confirmAction = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> exitAction = nullptr;
-
-	virtual void BeginPlay() override;
-
-private:
-	UPROPERTY()
-	TObjectPtr<ABuildGhost> m_buildGhost = nullptr;
 
 	// References
 

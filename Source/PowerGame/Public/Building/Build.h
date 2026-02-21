@@ -34,6 +34,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FVector wireConnectionLocation = FVector::ZeroVector;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	bool rotatable = true;
+
 	// Build Menu
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

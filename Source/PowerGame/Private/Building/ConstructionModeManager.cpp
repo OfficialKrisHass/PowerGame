@@ -43,6 +43,8 @@ void UConstructionModeManager::BeginPlay() {
 	UEnhancedInputComponent* inputComponent = Cast<UEnhancedInputComponent>(m_character->InputComponent);
 	PW_ASSERT(inputComponent != nullptr, LogBuilding, TEXT("Could not retrieve UEnhancedInputComponent from '%s'."), *GetNameSafe(m_character));
 
+	inputComponent->BindAction(rotateGhostAction, ETriggerEvent::Started, this, &UConstructionModeManager::RotateBuildGhost);
+
 	inputComponent->BindAction(confirmAction, ETriggerEvent::Started, this, &UConstructionModeManager::Confirm);
 	inputComponent->BindAction(exitAction, ETriggerEvent::Started, this, &UConstructionModeManager::ExitConstructionMode);
 
@@ -69,7 +71,7 @@ void UConstructionModeManager::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	switch (tool) {
+	switch (m_tool) {
 
 	case EConstructionTool::BuildTool: HandleBuildTool(); break;
 	case EConstructionTool::DeconstructTool: HandleDeconstructTool(); break;
@@ -81,7 +83,7 @@ void UConstructionModeManager::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UConstructionModeManager::HandleBuildTool() {
 
-	if (selectedBuild == nullptr) return;
+	if (m_selectedBuild == nullptr) return;
 
 	FHitResult hit = FHitResult(EForceInit::ForceInit);
 	VisibilityTrace(hit);
@@ -94,7 +96,7 @@ void UConstructionModeManager::HandleBuildTool() {
 	}
 
 	FVector location = hit.ImpactPoint;
-	if (gridSnap) {
+	if (m_gridSnap) {
 
 		location.X = FMath::RoundToInt(location.X / gridSize) * gridSize;
 		location.Y = FMath::RoundToInt(location.Y / gridSize) * gridSize;
@@ -112,11 +114,11 @@ void UConstructionModeManager::HandleDeconstructTool() {
 	if (hit.bBlockingHit && Cast<ABuildInstance>(hit.GetActor()) != nullptr) {
 
 		ABuildInstance* buildInstance = Cast<ABuildInstance>(hit.GetActor());
-		if (highlightedBuildInstance != nullptr && highlightedBuildInstance != buildInstance)
-			highlightedBuildInstance->ResetHighlightMaterial();
+		if (m_highlightedBuildInstance != nullptr && m_highlightedBuildInstance != buildInstance)
+			m_highlightedBuildInstance->ResetHighlightMaterial();
 
-		highlightedBuildInstance = buildInstance;
-		highlightedBuildInstance->SetHighlightMaterial(deconstructHighlightMaterial);
+		m_highlightedBuildInstance = buildInstance;
+		m_highlightedBuildInstance->SetHighlightMaterial(deconstructHighlightMaterial);
 
 		return;
 
@@ -124,10 +126,10 @@ void UConstructionModeManager::HandleDeconstructTool() {
 
 	// Reset if changed
 
-	if (highlightedBuildInstance == nullptr) return;
-
-	highlightedBuildInstance->ResetHighlightMaterial();
-	highlightedBuildInstance = nullptr;
+	if (m_highlightedBuildInstance == nullptr) return;
+	
+	m_highlightedBuildInstance->ResetHighlightMaterial();
+	m_highlightedBuildInstance = nullptr;
 
 }
 
@@ -147,7 +149,7 @@ void UConstructionModeManager::VisibilityTrace(FHitResult& hit) {
 
 void UConstructionModeManager::SelectBuildTool() {
 
-	if (tool == EConstructionTool::BuildTool) {
+	if (m_tool == EConstructionTool::BuildTool) {
 
 		ExitConstructionMode();
 		return;
@@ -158,14 +160,14 @@ void UConstructionModeManager::SelectBuildTool() {
 
 	// First deselect the deconstruct tool if selected
 
-	if (tool == EConstructionTool::DeconstructTool) {
+	if (m_tool == EConstructionTool::DeconstructTool) {
 
-		if (highlightedBuildInstance != nullptr) {
+		if (m_highlightedBuildInstance != nullptr) {
 
 			PW_LOG(LogBuilding, TEXT("Deselecting deconstruct tool."));
 
-			highlightedBuildInstance->ResetHighlightMaterial();
-			highlightedBuildInstance = nullptr;
+			m_highlightedBuildInstance->ResetHighlightMaterial();
+			m_highlightedBuildInstance = nullptr;
 
 		}
 
@@ -174,13 +176,13 @@ void UConstructionModeManager::SelectBuildTool() {
 
 	// Then do the actual selecting
 
-	tool = EConstructionTool::BuildTool;
+	m_tool = EConstructionTool::BuildTool;
 	m_buildMenu->Open();
 
 }
 void UConstructionModeManager::SelectDeconstructTool() {
 
-	if (tool == EConstructionTool::DeconstructTool) {
+	if (m_tool == EConstructionTool::DeconstructTool) {
 
 		ExitConstructionMode();
 		return;
@@ -191,9 +193,9 @@ void UConstructionModeManager::SelectDeconstructTool() {
 
 	// First deselect the build tool if selected
 
-	if (tool == EConstructionTool::BuildTool) {
+	if (m_tool == EConstructionTool::BuildTool) {
 
-		selectedBuild = nullptr;
+		m_selectedBuild = nullptr;
 
 		m_buildGhost->Reset();
 		m_buildMenu->Close();
@@ -203,7 +205,7 @@ void UConstructionModeManager::SelectDeconstructTool() {
 	
 	// Then do the actual selecting
 
-	tool = EConstructionTool::DeconstructTool;
+	m_tool = EConstructionTool::DeconstructTool;
 
 }
 
@@ -211,11 +213,11 @@ void UConstructionModeManager::ExitConstructionMode() {
 
 	PW_LOG(LogBuilding, TEXT("Exiting construction mode."));
 
-	switch (tool) {
+	switch (m_tool) {
 
 	case EConstructionTool::BuildTool: {
 
-		selectedBuild = nullptr;
+		m_selectedBuild = nullptr;
 
 		m_buildGhost->Reset();
 		m_buildMenu->Close();
@@ -225,10 +227,10 @@ void UConstructionModeManager::ExitConstructionMode() {
 	}
 	case EConstructionTool::DeconstructTool: {
 
-		if (highlightedBuildInstance == nullptr) break;
+		if (m_highlightedBuildInstance == nullptr) break;
 
-		highlightedBuildInstance->ResetHighlightMaterial();
-		highlightedBuildInstance = nullptr;
+		m_highlightedBuildInstance->ResetHighlightMaterial();
+		m_highlightedBuildInstance = nullptr;
 
 		break;
 
@@ -238,13 +240,13 @@ void UConstructionModeManager::ExitConstructionMode() {
 	}
 
 	m_controller->RemoveMappingContext(constructionModeIMC);
-	tool = EConstructionTool::None;
+	m_tool = EConstructionTool::None;
 
 }
 
 void UConstructionModeManager::SelectBuild(UBuild* build) {
 
-	selectedBuild = build;
+	m_selectedBuild = build;
 
 	if (m_buildGhost == nullptr)
 		SpawnBuildGhost(build->buildGhostClass);
@@ -265,7 +267,7 @@ void UConstructionModeManager::SelectBuild(UBuild* build) {
 
 void UConstructionModeManager::Confirm() {
 
-	switch (tool) {
+	switch (m_tool) {
 
 	case EConstructionTool::BuildTool: ConfirmBuildTool(); break;
 	case EConstructionTool::DeconstructTool: ConfirmDeconstructTool(); break;
@@ -276,7 +278,7 @@ void UConstructionModeManager::Confirm() {
 }
 void UConstructionModeManager::ConfirmBuildTool() {
 
-	if (selectedBuild == nullptr) return;
+	if (m_selectedBuild == nullptr) return;
 	if (!m_buildGhost->IsValidPlacement()) {
 
 		PW_LOG_ERROR(LogBuilding, TEXT("Invalid build placement."));
@@ -302,7 +304,7 @@ void UConstructionModeManager::ConfirmBuildTool() {
 	// Get the location
 
 	FVector location = hit.ImpactPoint;
-	if (gridSnap) {
+	if (m_gridSnap) {
 
 		location.X = FMath::RoundToInt(location.X / gridSize) * gridSize;
 		location.Y = FMath::RoundToInt(location.Y / gridSize) * gridSize;
@@ -314,10 +316,10 @@ void UConstructionModeManager::ConfirmBuildTool() {
 }
 void UConstructionModeManager::ConfirmDeconstructTool() {
 
-	if (highlightedBuildInstance == nullptr) return;
+	if (m_highlightedBuildInstance == nullptr) return;
 
-	GetWorld()->DestroyActor(highlightedBuildInstance);
-	highlightedBuildInstance = nullptr;
+	GetWorld()->DestroyActor(m_highlightedBuildInstance);
+	m_highlightedBuildInstance = nullptr;
 
 }
 
@@ -330,7 +332,16 @@ void UConstructionModeManager::BindUI(UBuildMenu* buildMenu) {
 
 void UConstructionModeManager::ToggleGridSnap() {
 
-	if (tool != EConstructionTool::BuildTool) return;
-	gridSnap = !gridSnap;
+	if (m_tool != EConstructionTool::BuildTool) return;
+	m_gridSnap = !m_gridSnap;
+
+}
+
+void UConstructionModeManager::RotateBuildGhost() {
+
+	if (m_buildGhost == nullptr || m_buildGhost->IsHidden()) return;
+	if (!m_selectedBuild->rotatable) return;
+
+	m_buildGhost->AddActorWorldRotation(FRotator(0.0f, rotationAngle, 0.0f));
 
 }
