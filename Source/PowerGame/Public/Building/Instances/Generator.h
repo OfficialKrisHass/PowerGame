@@ -12,10 +12,10 @@ class POWERGAME_API AGenerator : public AMeshBuildInstance {
 
 	GENERATED_BODY()
 	
-public:
-	//
-
 protected:
+	virtual void BeginPlay() override;
+
+private:
 	UPROPERTY(EditAnywhere)
 	bool active = false;
 

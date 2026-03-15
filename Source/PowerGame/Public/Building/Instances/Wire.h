@@ -5,21 +5,25 @@
 
 #include "Wire.generated.h"
 
-class USplineComponent;
-class USplineMeshComponent;
+class APowerNetwork;
 
 UCLASS()
 class POWERGAME_API AWire : public ASplineBuildInstance {
 
 	GENERATED_BODY()
+
+	friend APowerNetwork;
 	
 public:
 	virtual void SetStartAndEnd(const FVector& startLocation, const FVector& endLocation) override;
 
+	UFUNCTION(BlueprintCallable)
+	void Connect(ABuildInstance* startBuildInstance, ABuildInstance* endBuildInstance);
+
 private:
 	UPROPERTY(VisibleAnywhere)
-	FVector m_startLocation = FVector::ZeroVector;
+	TObjectPtr<ABuildInstance> m_startBuildInstance = nullptr;
 	UPROPERTY(VisibleAnywhere)
-	FVector m_endLocation = FVector::ZeroVector;
+	TObjectPtr<ABuildInstance> m_endBuildInstance = nullptr;
 
 };

@@ -5,6 +5,7 @@
 
 #include "Building/Instances/BuildInstance.h"
 #include "Building/Instances/SplineBuildInstance.h"
+#include "Building/Instances/Wire.h"
 
 void ABuildGhostWire::SetBuild(UBuild* build) {
 
@@ -50,6 +51,14 @@ void ABuildGhostWire::Confirm(const FVector& location, ABuildInstance* targetBui
 
 		splineInstance->SetBuild(m_build);
 		splineInstance->SetStartAndEnd(m_startWireLocation, targetBuildInstance->GetActorTransform().TransformPosition(build->wireConnectionLocation));
+
+		AWire* wire = Cast<AWire>(splineInstance);
+		if (wire != nullptr) {
+
+			PW_ASSERT(m_startBuildInstance != nullptr, LogBuilding, TEXT("Start build instance was not set in Wire build ghost."));
+			wire->Connect(m_startBuildInstance, targetBuildInstance);
+
+		}
 
 		// Reset back to preview for the next wire
 

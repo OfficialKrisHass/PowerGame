@@ -1,4 +1,5 @@
 #include "Building/Instances/BuildInstance.h"
+#include "Building/Instances/Wire.h"
 
 #include "Building/Build.h"
 
@@ -18,6 +19,23 @@ void ABuildInstance::SetBuild(UBuild* build) {
 
 	m_build = build;
 	mesh->SetStaticMesh(build->mesh);
+
+}
+
+void ABuildInstance::ConnectWire(AWire* wire) {
+
+	m_connectedWires.Add(wire);
+
+}
+
+void ABuildInstance::Deconstruct() {
+
+	for (TObjectPtr<AWire> wire : m_connectedWires) {
+
+		if (wire == nullptr) continue;
+		GetWorld()->DestroyActor(wire);
+
+	}
 
 }
 

@@ -318,7 +318,9 @@ void UConstructionModeManager::ConfirmDeconstructTool() {
 
 	if (m_highlightedBuildInstance == nullptr) return;
 
+	m_highlightedBuildInstance->Deconstruct();
 	GetWorld()->DestroyActor(m_highlightedBuildInstance);
+
 	m_highlightedBuildInstance = nullptr;
 
 }

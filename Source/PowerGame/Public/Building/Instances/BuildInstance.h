@@ -9,16 +9,28 @@
 
 class UBuild;
 
+class AWire;
+class APowerNetwork;
+
 UCLASS(Abstract)
 class POWERGAME_API ABuildInstance : public AActor {
 
 	GENERATED_BODY()
+
+	friend APowerNetwork;
+	friend AWire;
 	
 public:
 	ABuildInstance();
 
 	UFUNCTION(BlueprintCallable)
 	void SetBuild(UBuild* build);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void ConnectWire(AWire* wire);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void Deconstruct();
 
 	// Highlight material
 
@@ -36,10 +48,16 @@ protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> mesh = nullptr;
 
+	virtual void BeginPlay() override;
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBuild> m_build = nullptr;
+	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<APowerNetwork> m_powerNetwork = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TArray<TObjectPtr<AWire>> m_connectedWires;
 
-	virtual void BeginPlay() override;
 	
 };
