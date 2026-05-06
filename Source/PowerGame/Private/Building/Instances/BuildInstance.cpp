@@ -3,6 +3,8 @@
 
 #include "Building/Build.h"
 
+#include "Power/PowerNetwork.h"
+
 ABuildInstance::ABuildInstance() {
 
 	PrimaryActorTick.bCanEverTick = false;
@@ -32,7 +34,10 @@ void ABuildInstance::Deconstruct() {
 
 	for (TObjectPtr<AWire> wire : m_connectedWires) {
 
-		if (wire == nullptr) continue;
+		if (wire == nullptr || wire->IsActorBeingDestroyed()) continue;
+		if (m_powerNetwork != nullptr)
+			m_powerNetwork->DisconnectWire(wire);
+
 		GetWorld()->DestroyActor(wire);
 
 	}

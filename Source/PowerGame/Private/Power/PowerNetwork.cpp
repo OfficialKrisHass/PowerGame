@@ -8,7 +8,65 @@ DEFINE_LOG_CATEGORY(LogPower);
 
 APowerNetwork::APowerNetwork() {
 
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+void APowerNetwork::Tick(float deltaTime) {
+
+	Super::Tick(deltaTime);
+
+	// First calculate the total supply and demand
+
+	m_totalSupply = 0.0f;
+	m_totalDemand = 0.0f;
+
+	for (TObjectPtr<AGenerator> generator : m_generators)
+		m_totalSupply += generator->GetMaxOutput();
+
+	for (TObjectPtr<ALoad> load : m_loads)
+		m_totalDemand += load->GetDemand();
+
+	if (m_totalSupply == 0.0f) {
+
+		m_dead = true;
+		m_frequency = 0.0f;
+		m_voltage = 0.0f;
+
+		return;
+
+	}
+
+	if (m_totalDemand == 0.0f) return;
+
+	// Calculate grid frequency
+
+	float imbalance = m_totalSupply - m_totalDemand;
+	m_frequency += imbalance * 0.0001f * deltaTime;
+
+	// Update generators
+
+	float error = baseFrequency - m_frequency;
+	float totalGeneration = 0.0f;
+
+	for (TObjectPtr<AGenerator> generator : m_generators) {
+
+		generator->Respond(error);
+		totalGeneration += generator->GetCurrentOutput();
+
+	}
+
+	// Update loads
+
+	float supplyRatio = FMath::Clamp(totalGeneration / m_totalDemand, 0.0f, 1.0f);
+
+	for (TObjectPtr<ALoad> load : m_loads)
+		load->Update(supplyRatio);
+
+	// Update voltage
+	// TODO: This is just basic and crude, this should be updated
+
+	m_voltage = baseVoltage * FMath::Clamp(supplyRatio, 0.9f, 1.1f);
 
 }
 
@@ -22,6 +80,25 @@ void APowerNetwork::ConnectLoad(ALoad* load) {
 
 	PW_ASSERT(load != nullptr, LogPower, TEXT("Can't connect invalid load to power network '%s'."), *GetNameSafe(this));
 	m_loads.Add(load);
+
+}
+
+void APowerNetwork::DisconnectGenerator(AGenerator* generator) {
+
+	PW_ASSERT(m_generators.Contains(generator), LogPower, TEXT("Can't disconnect generator ('%s') that isn't connected to network: '%s'"), *GetNameSafe(generator), *GetNameSafe(this));
+	m_generators.Remove(generator);
+
+}
+void APowerNetwork::DisconnectLoad(ALoad* load) {
+
+	PW_ASSERT(m_loads.Contains(load), LogPower, TEXT("Can't disconnect load ('%s') that isn't connected to network: '%s'"), *GetNameSafe(load), *GetNameSafe(this));
+	m_loads.Remove(load);
+
+}
+void APowerNetwork::DisconnectWire(AWire* wire) {
+
+	PW_ASSERT(m_connections.Contains(wire), LogPower, TEXT("Can't disconnect wire ('%s') that isn't connected to network: '%s'"), *GetNameSafe(wire), *GetNameSafe(this));
+	m_connections.Remove(wire);
 
 }
 
@@ -103,9 +180,24 @@ APowerNetwork* APowerNetwork::HandleConnection(ABuildInstance* buildInstanceA, A
 
 void APowerNetwork::AddBuildInstance(ABuildInstance* buildInstance) {
 
-	if (AGenerator* generator = Cast<AGenerator>(buildInstance))
+	if (AGenerator* generator = Cast<AGenerator>(buildInstance)) {
+
 		m_generators.Add(generator);
-	else if (ALoad* load = Cast<ALoad>(buildInstance))
+		generator->SetNetwork(this);
+
+		if (m_generators.Num() == 1) {
+
+			m_dead = false;
+			m_frequency = baseFrequency;
+			m_voltage = baseVoltage;
+
+		}
+
+	} else if (ALoad* load = Cast<ALoad>(buildInstance)) {
+
 		m_loads.Add(load);
+		load->SetNetwork(this);
+
+	}
 
 }
