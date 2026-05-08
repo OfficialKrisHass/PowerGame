@@ -8,6 +8,7 @@
 #include "MainLayout.generated.h"
 
 class UBuildMenu;
+class UNetworkVisualizer;
 
 UCLASS(Abstract)
 class POWERGAME_API UMainLayout : public UUserWidgetBase {
@@ -17,8 +18,13 @@ class POWERGAME_API UMainLayout : public UUserWidgetBase {
 public:
 	virtual void NativeConstruct() override;
 
+	UFUNCTION(BlueprintCallable)
+	inline UNetworkVisualizer* GetNetworkVisualizer() const { return networkVisualizer; }
+
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 	TObjectPtr<UBuildMenu> buildMenu = nullptr;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+	TObjectPtr<UNetworkVisualizer> networkVisualizer = nullptr;
 
 };

@@ -3,10 +3,14 @@
 
 #include "UI/BuildMenu/BuildMenu.h"
 
+#include "UI/Power/NetworkVisualizer.h"
+
 #include "Player/MainPlayerController.h"
 #include "Player/MainPlayerCharacter.h"
 
 #include "Building/ConstructionModeManager.h"
+
+#include "Power/PowerNetwork.h"
 
 void UMainLayout::NativeConstruct() {
 
@@ -22,5 +26,8 @@ void UMainLayout::NativeConstruct() {
 
 	character->GetConstructionModeManager()->BindUI(buildMenu);
 	buildMenu->InitializeUI(controller);
+
+	PW_ASSERT(networkVisualizer != nullptr, LogUI, TEXT("Main layout has no NetworkVisualizer widget."));
+	APowerNetwork::BindUI(networkVisualizer);
 
 }

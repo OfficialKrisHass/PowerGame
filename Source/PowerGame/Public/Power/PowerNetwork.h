@@ -14,6 +14,8 @@ class AGenerator;
 class ALoad;
 class AWire;
 
+class UNetworkVisualizer;
+
 DECLARE_LOG_CATEGORY_EXTERN(LogPower, Log, All);
 
 UCLASS()
@@ -39,11 +41,28 @@ public:
 	UFUNCTION(BlueprintCallable)
 	static APowerNetwork* HandleConnection(ABuildInstance* buildInstanceA, ABuildInstance* buildInstanceB, AWire* wire);
 
+	UFUNCTION(BlueprintCallable)
+	inline float GetBaseFrequency() const { return baseFrequency; }
+	UFUNCTION(BlueprintCallable)
+	inline float GetBaseVoltage() const { return baseVoltage; }
+
+	UFUNCTION(BlueprintCallable)
+	inline bool IsDead() const { return m_dead; }
+	UFUNCTION(BlueprintCallable)
+	inline float GetFrequency() const { return m_frequency; }
+	UFUNCTION(BlueprintCallable)
+	inline float GetVoltage() const { return m_voltage; }
+
+	UFUNCTION()
+	static void BindUI(UNetworkVisualizer* visualizer) { networkVisualizer = visualizer; }
+
 protected:
 	UPROPERTY(EditAnywhere)
 	float baseFrequency = 50.0f;
 	UPROPERTY(EditAnywhere)
 	float baseVoltage = 230.0f;
+	UPROPERTY(EditAnywhere)
+	float responseStrength = 0.0005f;
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -64,6 +83,8 @@ private:
 	TSet<TObjectPtr<AGenerator>> m_generators;
 	UPROPERTY(VisibleAnywhere)
 	TSet<TObjectPtr<ALoad>> m_loads;
+
+	static UNetworkVisualizer* networkVisualizer;
 
 	virtual void Tick(float deltaTime) override;
 

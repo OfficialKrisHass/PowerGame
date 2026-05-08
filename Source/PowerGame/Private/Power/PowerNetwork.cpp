@@ -4,6 +4,10 @@
 #include "Building/Instances/Load.h"
 #include "Building/Instances/Wire.h"
 
+#include "UI/Power/NetworkVisualizer.h"
+
+UNetworkVisualizer* APowerNetwork::networkVisualizer = nullptr;
+
 DEFINE_LOG_CATEGORY(LogPower);
 
 APowerNetwork::APowerNetwork() {
@@ -42,7 +46,7 @@ void APowerNetwork::Tick(float deltaTime) {
 	// Calculate grid frequency
 
 	float imbalance = m_totalSupply - m_totalDemand;
-	m_frequency += imbalance * 0.0001f * deltaTime;
+	m_frequency += imbalance * responseStrength * deltaTime;
 
 	// Update generators
 
@@ -104,6 +108,8 @@ void APowerNetwork::DisconnectWire(AWire* wire) {
 
 APowerNetwork* APowerNetwork::HandleConnection(ABuildInstance* buildInstanceA, ABuildInstance* buildInstanceB, AWire* wire) {
 
+	static bool testing = false;
+
 	PW_ASSERT(buildInstanceA != nullptr && buildInstanceB != nullptr, LogPower, TEXT("Can't handle connection between invalid build instances."));
 
 	APowerNetwork* networkA = buildInstanceA->m_powerNetwork;
@@ -161,6 +167,14 @@ APowerNetwork* APowerNetwork::HandleConnection(ABuildInstance* buildInstanceA, A
 
 		resultingNetwork = buildInstanceA->GetWorld()->SpawnActor<APowerNetwork>();
 		PW_ASSERT(resultingNetwork != nullptr, LogPower, TEXT("Could not spawn new power network."));
+
+		if (!testing) {
+
+			PW_ASSERT(networkVisualizer != nullptr, LogPower, TEXT("NetworkVisualizer was not bound."));
+			networkVisualizer->SetNetwork(resultingNetwork);
+			testing = true;
+
+		}
 
 	} else
 		// Case 3: 1 connected, 1 unconnected building, the existing network is used.
