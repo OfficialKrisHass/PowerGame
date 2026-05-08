@@ -95,6 +95,9 @@ public:
 	// Getters
 
 	UFUNCTION(BlueprintCallable)
+	inline EConstructionTool GetTool() const { return m_tool; }
+
+	UFUNCTION(BlueprintCallable)
 	inline UBuildMenu* GetBuildMenu() const { return m_buildMenu; }
 
 protected:

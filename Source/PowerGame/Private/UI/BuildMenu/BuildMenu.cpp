@@ -40,7 +40,7 @@ void UBuildMenu::Open() {
 
 	SetVisibility(ESlateVisibility::Visible);
 
-	PW_ASSERT(m_controller != nullptr, LogUI, TEXT("Build menu was not assigned a player controller, make sure you called UBuildMenu::Initialize()."));
+	PW_ASSERT(m_controller != nullptr, LogUI, TEXT("Build menu was not assigned a player controller, make sure you called UBuildMenu::InitializeUI()."));
 
 	m_controller->SetShowMouseCursor(true);
 	m_controller->SetInputMode(FInputModeGameAndUI());
@@ -51,7 +51,7 @@ void UBuildMenu::Close() {
 
 	SetVisibility(ESlateVisibility::Hidden);
 
-	PW_ASSERT(m_controller != nullptr, LogUI, TEXT("Build menu was not assigned a player controller, make sure you called UBuildMenu::Initialize()."));
+	PW_ASSERT(m_controller != nullptr, LogUI, TEXT("Build menu was not assigned a player controller, make sure you called UBuildMenu::InitializeUI()."));
 	
 	m_controller->SetShowMouseCursor(false);
 	m_controller->SetInputMode(FInputModeGameOnly());

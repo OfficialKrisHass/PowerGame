@@ -2,6 +2,10 @@
 
 #include "Building/ConstructionModeManager.h"
 
+#include "Building/Instances/BuildInstance.h"
+
+#include "UI/Power/NetworkVisualizer.h"
+
 #include <Components/CapsuleComponent.h>
 #include <Components/SkeletalMeshComponent.h>
 #include <Camera/CameraComponent.h>
@@ -14,7 +18,7 @@ DEFINE_LOG_CATEGORY(LogCharacter)
 
 AMainPlayerCharacter::AMainPlayerCharacter() {
 
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	GetCapsuleComponent()->InitCapsuleSize(55.0f, 96.0f);
 
@@ -40,9 +44,37 @@ AMainPlayerCharacter::AMainPlayerCharacter() {
 
 }
 
-void AMainPlayerCharacter::BeginPlay() {
+void AMainPlayerCharacter::Tick(float deltaTime) {
 
-	Super::BeginPlay();
+	Super::Tick(deltaTime);
+
+	if (constructionModeManager->GetTool() != EConstructionTool::None) return;
+
+	// Interaction trace
+
+	FHitResult hit = FHitResult(EForceInit::ForceInit);
+
+	FVector start = camera->GetComponentLocation();
+	FVector end = start + (camera->GetForwardVector() * interactionRange);
+
+	FCollisionQueryParams params = FCollisionQueryParams(TEXT("Construction mode visibility trace"), true, this);
+	params.bReturnPhysicalMaterial = false;
+	params.bDebugQuery = true;
+
+	if (!GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, params)) {
+
+		targetInteractible = nullptr;
+		return;
+
+	}
+
+	// Get the interactible
+
+	TObjectPtr<ABuildInstance> target = Cast<ABuildInstance>(hit.GetActor());
+	if (target != nullptr)
+		targetInteractible = target;
+	else
+		targetInteractible = nullptr;
 
 }
 
@@ -63,6 +95,14 @@ void AMainPlayerCharacter::Look(const FInputActionValue& value) {
 
 }
 
+void AMainPlayerCharacter::Interact(const FInputActionValue& value) {
+
+	if (targetInteractible == nullptr) return;
+
+	m_networkVisualizer->Open(targetInteractible->GetNetwork());
+
+}
+
 
 void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* playerInputComponent) {
 
@@ -78,6 +118,10 @@ void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* playerInpu
 
 	inputComponent->BindAction(jumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 	inputComponent->BindAction(jumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+	// Interactions
+
+	inputComponent->BindAction(interactAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::Interact);
 
 	// Mode switching
 

@@ -44,6 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	inline UBuild* GetBuild() const { return m_build; }
 
+	UFUNCTION(BlueprintCallable)
+	inline APowerNetwork* GetNetwork() const { return m_powerNetwork; }
+
 protected:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> mesh = nullptr;

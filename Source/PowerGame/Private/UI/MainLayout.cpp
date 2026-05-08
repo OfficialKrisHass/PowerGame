@@ -22,12 +22,13 @@ void UMainLayout::NativeConstruct() {
 	AMainPlayerCharacter* character = Cast<AMainPlayerCharacter>(controller->GetCharacter());
 	PW_ASSERT(character != nullptr, LogUI, TEXT("Could not retrieve player character from player controller."));
 
-	PW_ASSERT(buildMenu != nullptr, LogUI, TEXT("Build Menu ui was not assigned."));
+	PW_ASSERT(buildMenu != nullptr, LogUI, TEXT("Main layouts BuildMenu ui was not assigned."));
+	PW_ASSERT(networkVisualizer != nullptr, LogUI, TEXT("Main layouts NetworkVisualizer ui was not assigned."));
 
 	character->GetConstructionModeManager()->BindUI(buildMenu);
-	buildMenu->InitializeUI(controller);
+	character->BindUI(networkVisualizer);
 
-	PW_ASSERT(networkVisualizer != nullptr, LogUI, TEXT("Main layout has no NetworkVisualizer widget."));
-	APowerNetwork::BindUI(networkVisualizer);
+	buildMenu->InitializeUI(controller);
+	networkVisualizer->InitializeUI(controller);
 
 }
