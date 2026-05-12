@@ -2,16 +2,25 @@
 
 #include <CoreMinimal.h>
 #include "UI/UserWidgetBase.h"
+
+#include "Core/Core.h"
+
 #include "NetworkVisualizer.generated.h"
+
+class UNetworkSineWaveVisualizer;
 
 class AMainPlayerController;
 
 class APowerNetwork;
 
+// UE classes
+
+class UTextBlock;
+
 class UInputAction;
 class UInputMappingContext;
 
-UCLASS()
+UCLASS(Abstract)
 class POWERGAME_API UNetworkVisualizer : public UUserWidgetBase {
 
 	GENERATED_BODY()
@@ -25,29 +34,19 @@ public:
 	void Close();
 
 protected:
-	virtual int32 NativePaint(const FPaintArgs& args, const FGeometry& allotedGeometry, const FSlateRect& cullingRect, FSlateWindowElementList& out, int32 layer, const FWidgetStyle& widgetStyle, bool parentEnabled) const override;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+	TObjectPtr<UNetworkSineWaveVisualizer> sineWaveVisualizer = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+	TObjectPtr<UTextBlock> frequencyText = nullptr;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+	TObjectPtr<UTextBlock> voltageText = nullptr;
+
 	virtual void NativeTick(const FGeometry& geometry, float deltaTime) override;
 
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<APowerNetwork> m_network = nullptr;
-
-	// Visualization knobs
-
-	UPROPERTY(EditAnywhere)
-	uint32 numSamples = 128;
-
-	UPROPERTY(EditAnywhere)
-	uint32 baseWaveCycles = 2.0f;
-	UPROPERTY(EditAnywhere)
-	float lineThickness = 2.0f;
-	UPROPERTY(EditAnywhere)
-	float amplitude = 50.0f;
-	UPROPERTY(EditAnywhere)
-	float scrollSpeed = 2.0f;
-
-	UPROPERTY(EditAnywhere)
-	float amplification = 5.0f;
 
 	// Input
 
@@ -59,8 +58,5 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AMainPlayerController> m_controller;
-
-	UPROPERTY()
-	float phase = 0.0f;
 
 };
