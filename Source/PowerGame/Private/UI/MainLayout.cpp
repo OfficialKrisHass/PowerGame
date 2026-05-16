@@ -1,5 +1,6 @@
 #include "UI/MainLayout.h"
 #include "UI/MainHUD.h"
+#include "UI/PauseMenu.h"
 
 #include "UI/BuildMenu/BuildMenu.h"
 
@@ -22,13 +23,17 @@ void UMainLayout::NativeConstruct() {
 	AMainPlayerCharacter* character = Cast<AMainPlayerCharacter>(controller->GetCharacter());
 	PW_ASSERT(character != nullptr, LogUI, TEXT("Could not retrieve player character from player controller."));
 
+	PW_ASSERT(pauseMenu != nullptr, LogUI, TEXT("Main layouts PauseMenu ui was not assigned."))
 	PW_ASSERT(buildMenu != nullptr, LogUI, TEXT("Main layouts BuildMenu ui was not assigned."));
+
 	PW_ASSERT(networkVisualizer != nullptr, LogUI, TEXT("Main layouts NetworkVisualizer ui was not assigned."));
 
 	character->GetConstructionModeManager()->BindUI(buildMenu);
-	character->BindUI(networkVisualizer);
+	character->BindUI(pauseMenu, networkVisualizer);
 
+	pauseMenu->InitializeUI(controller);
 	buildMenu->InitializeUI(controller);
+
 	networkVisualizer->InitializeUI(controller);
 
 }

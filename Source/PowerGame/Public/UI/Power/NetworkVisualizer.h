@@ -54,7 +54,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> closeAction = nullptr;
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputMappingContext> m_visualizerIMC = nullptr;
+	TObjectPtr<UInputMappingContext> uiIMC = nullptr;
 
 	UPROPERTY()
 	TObjectPtr<AMainPlayerController> m_controller;

@@ -35,6 +35,8 @@ void UBuildMenu::UpdateSlots(const TArray<UBuild*>& builds) {
 
 void UBuildMenu::Open() {
 
+	if (GetVisibility() == ESlateVisibility::Visible) return;
+
 	if (!IsInViewport())
 		AddToViewport();
 
@@ -48,6 +50,8 @@ void UBuildMenu::Open() {
 
 }
 void UBuildMenu::Close() {
+
+	if (GetVisibility() == ESlateVisibility::Hidden) return;
 
 	SetVisibility(ESlateVisibility::Hidden);
 

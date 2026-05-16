@@ -7,7 +7,9 @@
 
 #include "MainLayout.generated.h"
 
+class UPauseMenu;
 class UBuildMenu;
+
 class UNetworkVisualizer;
 
 UCLASS(Abstract)
@@ -23,7 +25,10 @@ public:
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+	TObjectPtr<UPauseMenu> pauseMenu = nullptr;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 	TObjectPtr<UBuildMenu> buildMenu = nullptr;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 	TObjectPtr<UNetworkVisualizer> networkVisualizer = nullptr;
 

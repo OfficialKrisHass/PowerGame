@@ -1,7 +1,7 @@
 #include "UI/Power/NetworkVisualizer.h"
 #include "UI/Power/NetworkSineWaveVisualizer.h"
 
-#include "UI/MainHud.h"
+#include "UI/MainHUD.h"
 
 #include "Power/PowerNetwork.h"
 
@@ -43,6 +43,8 @@ void UNetworkVisualizer::NativeTick(const FGeometry& geometry, float deltaTime) 
 
 void UNetworkVisualizer::Open(APowerNetwork* network) {
 
+	if (GetVisibility() == ESlateVisibility::Visible) return;
+
 	if (!IsInViewport())
 		AddToViewport();
 
@@ -54,12 +56,14 @@ void UNetworkVisualizer::Open(APowerNetwork* network) {
 	m_controller->SetShowMouseCursor(true);
 	m_controller->SetInputMode(FInputModeGameAndUI());
 	m_controller->DisableDefaultIMC();
-	m_controller->AddMappingContext(m_visualizerIMC);
+	m_controller->AddMappingContext(uiIMC);
 
 	sineWaveVisualizer->SetNetwork(m_network);
 
 }
 void UNetworkVisualizer::Close() {
+
+	if (GetVisibility() == ESlateVisibility::Hidden) return;
 
 	SetVisibility(ESlateVisibility::Hidden);
 	m_network = nullptr;
@@ -69,7 +73,7 @@ void UNetworkVisualizer::Close() {
 	m_controller->SetShowMouseCursor(false);
 	m_controller->SetInputMode(FInputModeGameOnly());
 	m_controller->EnableDefaultIMC();
-	m_controller->RemoveMappingContext(m_visualizerIMC);
+	m_controller->RemoveMappingContext(uiIMC);
 
 	sineWaveVisualizer->SetNetwork(nullptr);
 

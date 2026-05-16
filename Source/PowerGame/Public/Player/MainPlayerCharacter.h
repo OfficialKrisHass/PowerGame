@@ -14,6 +14,8 @@ class ABuildInstance;
 
 // UI
 
+class UPauseMenu;
+
 class UNetworkVisualizer;
 
 // UE Components
@@ -41,7 +43,12 @@ public:
 	virtual void Tick(float deltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	inline void BindUI(UNetworkVisualizer* visualizer) { m_networkVisualizer = visualizer; }
+	inline void BindUI(UPauseMenu* pauseMenu, UNetworkVisualizer* visualizer) {
+		
+		m_pauseMenu = pauseMenu;
+		m_networkVisualizer = visualizer;
+	
+	}
 
 	UFUNCTION(BlueprintCallable)
 	inline UCameraComponent* GetCamera() const { return camera; }
@@ -95,12 +102,21 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input|Modes")
 	TObjectPtr<UInputAction> selectDeconstructToolAction = nullptr;
 
+	// Pause menu
+
+	UPROPERTY(EditAnywhere, Category = "Input|Puase menu")
+	TObjectPtr<UInputAction> openPauseMenuAction = nullptr;
+
 private:
+	UPROPERTY()
+	TObjectPtr<UPauseMenu> m_pauseMenu = nullptr;
 	UPROPERTY()
 	TObjectPtr<UNetworkVisualizer> m_networkVisualizer = nullptr;
 
 	void Move(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
+
+	void OpenPauseMenu(const FInputActionValue& value);
 
 	void Interact(const FInputActionValue& value);
 	

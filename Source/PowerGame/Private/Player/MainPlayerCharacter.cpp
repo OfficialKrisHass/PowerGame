@@ -4,6 +4,8 @@
 
 #include "Building/Instances/BuildInstance.h"
 
+#include "UI/PauseMenu.h"
+
 #include "UI/Power/NetworkVisualizer.h"
 
 #include <Components/CapsuleComponent.h>
@@ -95,6 +97,14 @@ void AMainPlayerCharacter::Look(const FInputActionValue& value) {
 
 }
 
+void AMainPlayerCharacter::OpenPauseMenu(const FInputActionValue& value) {
+
+	PW_ASSERT(m_pauseMenu != nullptr, LogCharacter, TEXT("AMainPlayerCharacter did not had a PauseMenu ui bound."));
+
+	m_pauseMenu->Open();
+
+}
+
 void AMainPlayerCharacter::Interact(const FInputActionValue& value) {
 
 	if (targetInteractible == nullptr) return;
@@ -122,6 +132,10 @@ void AMainPlayerCharacter::SetupPlayerInputComponent(UInputComponent* playerInpu
 	// Interactions
 
 	inputComponent->BindAction(interactAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::Interact);
+
+	// Pause menu
+
+	inputComponent->BindAction(openPauseMenuAction, ETriggerEvent::Triggered, this, &AMainPlayerCharacter::OpenPauseMenu);
 
 	// Mode switching
 
