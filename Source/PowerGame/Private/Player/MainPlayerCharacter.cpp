@@ -8,6 +8,8 @@
 
 #include "UI/Power/NetworkVisualizer.h"
 
+#include "WorldSaveGame.h"
+
 #include <Components/CapsuleComponent.h>
 #include <Components/SkeletalMeshComponent.h>
 #include <Camera/CameraComponent.h>
@@ -15,6 +17,8 @@
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
 #include <InputActionValue.h>
+
+#include <Kismet/GameplayStatics.h>
 
 DEFINE_LOG_CATEGORY(LogCharacter)
 
@@ -77,6 +81,42 @@ void AMainPlayerCharacter::Tick(float deltaTime) {
 		targetInteractible = target;
 	else
 		targetInteractible = nullptr;
+
+}
+
+void AMainPlayerCharacter::SaveGame() {
+
+	UWorldSaveGame* saveData = Cast<UWorldSaveGame>(UGameplayStatics::CreateSaveGameObject(UWorldSaveGame::StaticClass()));
+
+	FAsyncSaveGameToSlotDelegate saveDelegate;
+	saveDelegate.BindUObject(this, &AMainPlayerCharacter::SavingFinished);
+
+	saveData->test = savedData;
+
+	UGameplayStatics::AsyncSaveGameToSlot(saveData, "SaveSlot1", 0, saveDelegate);
+
+}
+void AMainPlayerCharacter::LoadGame() {
+
+	FAsyncLoadGameFromSlotDelegate loadDelegate;
+	loadDelegate.BindUObject(this, &AMainPlayerCharacter::LoadingFinished);
+
+	UGameplayStatics::AsyncLoadGameFromSlot("SaveSlot1", 0, loadDelegate);
+
+}
+
+void AMainPlayerCharacter::SavingFinished(const FString& slotName, int32 userIndex, bool success) {
+
+	PW_LOG(LogCharacter, TEXT("Saving finished into slot '%s'"), *slotName);
+
+}
+void AMainPlayerCharacter::LoadingFinished(const FString& slotName, const int32 userIndex, USaveGame* loadedSaveData) {
+
+	UWorldSaveGame* saveData = Cast<UWorldSaveGame>(loadedSaveData);
+	PW_ASSERT(saveData != nullptr, LogCharacter, TEXT("Could not cast USaveGame to UWorldSaveGame when loading save slot '%s'"), *slotName);
+
+	PW_LOG(LogCharacter, TEXT("Loading finished from slot '%s' with data of: '%s'"), *slotName, *saveData->test);
+	savedData = saveData->test;
 
 }
 

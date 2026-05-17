@@ -33,6 +33,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 	TObjectPtr<UButton> resumeButton = nullptr;
 	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+	TObjectPtr<UButton> saveButton = nullptr;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
+	TObjectPtr<UButton> loadButton = nullptr;
+	UPROPERTY(BlueprintReadOnly, Category = "Widgets", meta = (BindWidget))
 	TObjectPtr<UButton> quitButton = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -43,6 +47,10 @@ protected:
 	
 	UFUNCTION()
 	void Resume();
+	UFUNCTION()
+	void SaveGame();
+	UFUNCTION()
+	void LoadGame();
 	UFUNCTION()
 	void Quit();
 
