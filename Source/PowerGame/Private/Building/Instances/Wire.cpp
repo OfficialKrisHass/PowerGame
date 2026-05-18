@@ -2,6 +2,8 @@
 
 #include "Power/PowerNetwork.h"
 
+#include "Saving/WorldSaveSubsystem.h"
+
 void AWire::SetStartAndEnd(const FVector& startLocation, const FVector& endLocation) {
 
 	Super::SetStartAndEnd(startLocation, endLocation);
@@ -17,5 +19,26 @@ void AWire::Connect(ABuildInstance* startBuildInstance, ABuildInstance* endBuild
 
 	startBuildInstance->ConnectWire(this);
 	endBuildInstance->ConnectWire(this);
+
+}
+
+void AWire::SerializeSaveData(FInstancedStruct* out) {
+
+	PW_ASSERT(!out->IsValid(), LogSaveSubsystem, TEXT("FInstancedStruct should be initialized by the most derived class. '%s'"), *GetNameSafe(this));
+	out->InitializeAs<FWireSaveData>();
+
+	Super::SerializeSaveData(out);
+
+	FWireSaveData& saveData = out->GetMutable<FWireSaveData>();
+
+	saveData.startGUID = m_startBuildInstance->GetGUID();
+	saveData.endGUID = m_endBuildInstance->GetGUID();
+
+}
+
+void AWire::DeserializeSaveData(const FInstancedStruct& data) {
+
+	PW_ASSERT(data.GetScriptStruct()->IsChildOf(FWireSaveData::StaticStruct()), LogSaveSubsystem, TEXT("Saved FInstancedStruct is not of type FWireSaveData."));
+	Super::DeserializeSaveData(data);
 
 }

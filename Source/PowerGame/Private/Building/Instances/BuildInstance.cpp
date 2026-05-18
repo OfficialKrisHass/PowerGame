@@ -5,6 +5,9 @@
 
 #include "Power/PowerNetwork.h"
 
+#include "Saving/WorldSaveSubsystem.h"
+#include "Saving/BuildingSaveData.h"
+
 ABuildInstance::ABuildInstance() {
 
 	PrimaryActorTick.bCanEverTick = false;
@@ -17,10 +20,15 @@ void ABuildInstance::BeginPlay() {
 
 }
 
-void ABuildInstance::SetBuild(UBuild* build) {
+void ABuildInstance::SetBuild(UBuild* build, FGuid guid) {
 
 	m_build = build;
 	mesh->SetStaticMesh(build->mesh);
+
+	if (guid.IsValid())
+		m_guid = guid;
+	else
+		m_guid = FGuid::NewGuid();
 
 }
 
@@ -41,6 +49,28 @@ void ABuildInstance::Deconstruct() {
 		GetWorld()->DestroyActor(wire);
 
 	}
+
+}
+
+void ABuildInstance::SerializeSaveData(FInstancedStruct* out) {
+
+	PW_ASSERT(out->GetScriptStruct()->IsChildOf(FBuildingSaveData::StaticStruct()), LogSaveSubsystem, TEXT("FInstancedStruct must be initialized by the most derived class."));
+
+	FBuildingSaveData& saveData = out->GetMutable<FBuildingSaveData>();
+
+	saveData.guid = m_guid;
+	saveData.build = m_build;
+	saveData.buildClass = GetClass();
+
+	saveData.transform = GetActorTransform();
+
+}
+void ABuildInstance::DeserializeSaveData(const FInstancedStruct& data) {
+
+	PW_ASSERT(data.GetScriptStruct()->IsChildOf(FBuildingSaveData::StaticStruct()), LogSaveSubsystem, TEXT("Saved FInstancedStruct is not of type FBuildingSaveData."));
+
+	const FBuildingSaveData& saveData = data.Get<FBuildingSaveData>();
+	SetBuild(saveData.build, saveData.guid);
 
 }
 

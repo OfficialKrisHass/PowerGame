@@ -2,6 +2,8 @@
 
 #include "Power/PowerNetwork.h"
 
+#include "Saving/WorldSaveSubsystem.h"
+
 void ALoad::EndPlay(const EEndPlayReason::Type reason) {
 
 	Super::EndPlay(reason);
@@ -16,5 +18,28 @@ void ALoad::EndPlay(const EEndPlayReason::Type reason) {
 void ALoad::Update(float supplyRatio) {
 
 	m_suppliedPower = demand * supplyRatio;
+
+}
+
+void ALoad::SerializeSaveData(FInstancedStruct* out) {
+
+	PW_ASSERT(!out->IsValid(), LogSaveSubsystem, TEXT("FInstancedStruct should be initialized by the most derived class. '%s'"), *GetNameSafe(this));
+	out->InitializeAs<FLoadSaveData>();
+
+	SerializeSaveData(out);
+
+	FLoadSaveData& saveData = out->GetMutable<FLoadSaveData>();
+
+	saveData.demand = demand;
+
+}
+void ALoad::DeserializeSaveData(const FInstancedStruct& data) {
+
+	PW_ASSERT(data.GetScriptStruct()->IsChildOf(FLoadSaveData::StaticStruct()), LogSaveSubsystem, TEXT("Saved FInstancedStruct is not of type FLoadSaveData."));
+	Super::DeserializeSaveData(data);
+
+	const FLoadSaveData& saveData = data.Get<FLoadSaveData>();
+
+	demand = saveData.demand;
 
 }

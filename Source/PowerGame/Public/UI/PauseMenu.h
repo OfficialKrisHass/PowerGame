@@ -48,10 +48,6 @@ protected:
 	UFUNCTION()
 	void Resume();
 	UFUNCTION()
-	void SaveGame();
-	UFUNCTION()
-	void LoadGame();
-	UFUNCTION()
 	void Quit();
 
 private:

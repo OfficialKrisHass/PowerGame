@@ -2,6 +2,8 @@
 
 #include "Power/PowerNetwork.h"
 
+#include "Saving/WorldSaveSubsystem.h"
+
 #include "PowerGameMode.h"
 
 void AGenerator::BeginPlay() {
@@ -25,5 +27,30 @@ void AGenerator::EndPlay(const EEndPlayReason::Type reason) {
 void AGenerator::Respond(float freqError) {
 
 	m_currentOutput = maxOutput * FMath::Clamp(1 + freqError * responseStrength, 0.0f, 1.0f);
+
+}
+
+void AGenerator::SerializeSaveData(FInstancedStruct* out) {
+
+	PW_ASSERT(!out->IsValid(), LogSaveSubsystem, TEXT("FInstancedStruct should be initialized by the most derived class. '%s'"), *GetNameSafe(this));
+	out->InitializeAs<FGeneratorSaveData>();
+
+	Super::SerializeSaveData(out);
+
+	FGeneratorSaveData& saveData = out->GetMutable<FGeneratorSaveData>();
+
+	saveData.maxOutput = maxOutput;
+	saveData.responseStrength = responseStrength;
+
+}
+void AGenerator::DeserializeSaveData(const FInstancedStruct& data) {
+
+	PW_ASSERT(data.GetScriptStruct()->IsChildOf(FGeneratorSaveData::StaticStruct()), LogSaveSubsystem, TEXT("Saved FInstancedStruct is not of type FGeneratorSaveData."));
+	Super::DeserializeSaveData(data);
+	
+	const FGeneratorSaveData& saveData = data.Get<FGeneratorSaveData>();
+
+	maxOutput = saveData.maxOutput;
+	responseStrength = saveData.responseStrength;
 
 }

@@ -1,7 +1,11 @@
 #include "Building/Instances/SplineBuildInstance.h"
 
+#include "Saving/WorldSaveSubsystem.h"
+ 
 #include <Components/SplineComponent.h>
 #include <Components/SplineMeshComponent.h>
+
+#include <InstancedStruct.h>
 
 ASplineBuildInstance::ASplineBuildInstance() {
 
@@ -29,5 +33,32 @@ void ASplineBuildInstance::SetStartAndEnd(const FVector& startLocation, const FV
 	FVector endTangent = dir.GetSafeNormal() * length * 0.5f - FVector::DownVector * length * m_sagAmount;
 
 	m_splineMesh->SetStartAndEnd(FVector::ZeroVector, startTangent, endLocation - startLocation, endTangent);
+
+}
+
+void ASplineBuildInstance::SerializeSaveData(FInstancedStruct* out) {
+
+	PW_ASSERT(out->GetScriptStruct()->IsChildOf(FSplineSaveData::StaticStruct()), LogSaveSubsystem, TEXT("FInstancedStruct must be initialized by the most derived class."));
+	
+	Super::SerializeSaveData(out);
+
+	FSplineSaveData& saveData = out->GetMutable<FSplineSaveData>();
+
+	saveData.start = m_spline->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
+	saveData.end = m_spline->GetLocationAtSplinePoint(1, ESplineCoordinateSpace::World);
+
+	saveData.sagAmount = m_sagAmount;
+
+}
+
+void ASplineBuildInstance::DeserializeSaveData(const FInstancedStruct& data) {
+
+	PW_ASSERT(data.GetScriptStruct()->IsChildOf(FSplineSaveData::StaticStruct()), LogSaveSubsystem, TEXT("Saved FInstancedStruct is not of type FSplineSaveData."));
+	Super::DeserializeSaveData(data);
+
+	const FSplineSaveData& saveData = data.Get<FSplineSaveData>();
+
+	m_sagAmount = saveData.sagAmount;
+	SetStartAndEnd(saveData.start, saveData.end);
 
 }

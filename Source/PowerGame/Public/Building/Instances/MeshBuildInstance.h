@@ -2,6 +2,7 @@
 
 #include <CoreMinimal.h>
 #include "Building/Instances/BuildInstance.h"
+#include <StructUtils.h>
 
 #include "Core/Core.h"
 
@@ -14,5 +15,8 @@ class POWERGAME_API AMeshBuildInstance : public ABuildInstance {
 
 public:
 	AMeshBuildInstance();
+
+	virtual void SerializeSaveData(FInstancedStruct* out) override;
+	virtual void DeserializeSaveData(const FInstancedStruct& data) override;
 
 };

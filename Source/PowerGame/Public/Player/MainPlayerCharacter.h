@@ -57,19 +57,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	inline UConstructionModeManager* GetConstructionModeManager() const { return constructionModeManager; }
 
-	UPROPERTY(EditAnywhere, Category = "TESTING")
-	FString savedData;
-
-	UFUNCTION()
-	void SaveGame();
-	UFUNCTION()
-	void LoadGame();
-
-	UFUNCTION()
-	void SavingFinished(const FString& slotName, int32 userIndex, bool success);
-	UFUNCTION()
-	void LoadingFinished(const FString& slotName, const int32 userIndex, USaveGame* saveData);
-
 protected:
 	// Components
 

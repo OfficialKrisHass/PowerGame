@@ -5,7 +5,21 @@
 
 #include "Core/Core.h"
 
+#include "Saving/BuildingSaveData.h"
+
 #include "Generator.generated.h"
+
+USTRUCT()
+struct FGeneratorSaveData : public FBuildingSaveData {
+
+	GENERATED_BODY()
+
+	UPROPERTY()
+	float maxOutput = 0.0f;
+	UPROPERTY()
+	float responseStrength = 1.0f;
+
+};
 
 UCLASS()
 class POWERGAME_API AGenerator : public AMeshBuildInstance {
@@ -15,6 +29,9 @@ class POWERGAME_API AGenerator : public AMeshBuildInstance {
 public:
 	UFUNCTION(BlueprintCallable)
 	void Respond(float freqError);
+
+	virtual void SerializeSaveData(FInstancedStruct* out) override;
+	virtual void DeserializeSaveData(const FInstancedStruct& data) override;
 
 	UFUNCTION(BlueprintCallable)
 	inline float GetMaxOutput() const { return maxOutput; }

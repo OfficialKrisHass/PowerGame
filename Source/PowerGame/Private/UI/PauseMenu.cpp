@@ -1,6 +1,8 @@
 #include "UI/PauseMenu.h"
 #include "UI/MainHUD.h"
 
+#include "Saving/WorldSaveSubsystem.h"
+
 #include "Player/MainPlayerController.h"
 #include "Player/MainPlayerCharacter.h"
 
@@ -30,9 +32,13 @@ void UPauseMenu::NativeConstruct() {
 	Super::NativeConstruct();
 
 	resumeButton->OnClicked.AddDynamic(this, &UPauseMenu::Resume);
-	saveButton->OnClicked.AddDynamic(this, &UPauseMenu::SaveGame);
-	loadButton->OnClicked.AddDynamic(this, &UPauseMenu::LoadGame);
 	quitButton->OnClicked.AddDynamic(this, &UPauseMenu::Quit);
+
+	UWorldSaveSubsystem* saveSubsystem = GetGameInstance()->GetSubsystem<UWorldSaveSubsystem>();
+	PW_ASSERT(saveSubsystem != nullptr, LogUI, TEXT("Could not get UWorldSaveSubsystem from game instance."));
+
+	saveButton->OnClicked.AddDynamic(saveSubsystem, &UWorldSaveSubsystem::SaveWorld);
+	loadButton->OnClicked.AddDynamic(saveSubsystem, &UWorldSaveSubsystem::LoadWorld);
 
 }
 
@@ -71,26 +77,6 @@ void UPauseMenu::Close() {
 void UPauseMenu::Resume() {
 
 	Close();
-
-}
-void UPauseMenu::SaveGame() {
-
-	PW_ASSERT(m_controller != nullptr, LogUI, TEXT("PauseMenu was not assigned a player controller, make sure you called UPauseMenu::InitializeUI()."));
-	
-	AMainPlayerCharacter* character = Cast<AMainPlayerCharacter>(m_controller->GetCharacter());
-	PW_ASSERT(character != nullptr, LogUI, TEXT("Could not retrieve AMainPlayerCharacter from AMainPlayerControler '%s'"), *GetNameSafe(m_controller));
-
-	character->SaveGame();
-
-}
-void UPauseMenu::LoadGame() {
-
-	PW_ASSERT(m_controller != nullptr, LogUI, TEXT("PauseMenu was not assigned a player controller, make sure you called UPauseMenu::InitializeUI()."));
-
-	AMainPlayerCharacter* character = Cast<AMainPlayerCharacter>(m_controller->GetCharacter());
-	PW_ASSERT(character != nullptr, LogUI, TEXT("Could not retrieve AMainPlayerCharacter from AMainPlayerControler '%s'"), *GetNameSafe(m_controller));
-
-	character->LoadGame();
 
 }
 void UPauseMenu::Quit() {
